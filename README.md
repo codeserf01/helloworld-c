@@ -3,6 +3,6 @@
 This is an initial Readme file to describe the project it is associated with.
 Done for learning/tutorial purposes.
 
-This line is an addition to the original readme file.
+Putting a new line for supposed clarity in what the readme file is supposed to say.
 
-This is yet another change/addition to the readme file.
+This line is an addition to the original readme file.
