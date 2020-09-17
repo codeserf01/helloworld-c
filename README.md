@@ -5,4 +5,4 @@ Done for learning/tutorial purposes.
 
 Putting a new line for supposed clarity in what the readme file is supposed to say.
 
-This line is an addition to the original readme file.
+A basic program was added, "helloworld.c" to try out the VS Code feature for interfaceing with GitHub.
