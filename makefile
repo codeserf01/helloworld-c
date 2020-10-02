@@ -1,7 +1,7 @@
 # makefile
-# Test make file for running a compile of helloworld.c
+# Generic make file for running a compile of helloworld.c
 
-# the compiler: gcc for C program, g++ for C++ program
+# the compiler: 'gcc' for C program, 'g++' for C++ program
 CC = gcc
 
 
@@ -15,9 +15,9 @@ CFLAGS  = -g -Wall
 TARGET = helloworld
 
 # Build if the target (executable) is missing
-all: $(TARGET)
+default: $(TARGET)
 		$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
-
+		
 # Build if the source has changed
 $(TARGET): $(TARGET).c
 		$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
