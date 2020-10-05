@@ -1,5 +1,5 @@
 # ignore files for this project
 
-inputread
+helloworld
 *.swp
 log.txt
