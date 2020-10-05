@@ -1,0 +1,5 @@
+# ignore files for this project
+
+inputread
+*.swp
+log.txt
