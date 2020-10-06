@@ -1,4 +1,6 @@
-//  #include <mysql.h>  
+/* MariaDB include */
+#include <mariadb/mysql.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 
