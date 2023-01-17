@@ -9,14 +9,24 @@ int x = 0;
 int main()
 {
     printf("\n\n'x' variable, start: %i \n", x);
-    x = 1;
-    printf("Hello world!\n");
+    x = 0;
+    printf("%i - Hello world!", x);
+    printf(" - 'x' variable: %i \n", x);
+
+    x++;
+    printf("%i - Isn't this fun!", x);
+    printf(" - 'x' variable: %i \n", x);
+
+    x++;
+    printf("%i - Ammended third line added from master!", x);
+    printf(" - 'x' variable: %i \n", x);
+
+    x++;
+    printf("%i - Yet another line for a test.", x);
     printf("'x' variable: %i \n", x);
-    printf("Isn't this fun!\n");
-    printf("Ammended third line added from master!\n");
-    printf("Yet another line for a test.\n");
-    x = 2;
-    printf("'x' variable: %i \n", x);
-    printf("One last line for good luck.\n\n\n");
+
+    x++;
+    printf("%i - One more line for good luck.", x);
+    printf(" - End value for x: %i\n\n\n", x);
     return 0;
 }
