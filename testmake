@@ -1,0 +1,273 @@
+#!/usr/bin/make
+#
+# Makefile template for creating many executable programs.
+#
+# Targets:
+#   all	      - Make executable or object library as needed.
+#   clean     - Remove all generated files (.o, .a, etc.)
+#   depend    - Append include file dependencies to the bottom of the Makefile.
+#   install   - Install executable/library in project area.
+#
+# $Id: Makefile,v 1.2 2001/10/24 15:39:58 pbl Exp $
+# $Log: Makefile,v $
+#
+# Revision 1.1  1996/08/29  20:20:18  lxg
+# sr0000 CM
+# Initial load - Remove $(LIB) from LIB_OBJECTS for lib templates
+#
+#
+#******************************************************************************
+
+USER_CONFIG=./ed_${ORACLE_SID}.h
+#- Default Target -------------------------------------------------------------
+
+default: all
+
+#- Application Directories ----------------------------------------------------
+
+# Relative path of root directory of application
+# APP_ROOTDIR = trakker/src
+# APP_ROOTDIR = mikan/src
+APP_ROOTDIR = misacs/src
+
+# LIB_SRT_FRM_DIR=/home/its/cm/hold/mikan/shared/lib
+# LIB_SRT_FRM_DIR=/home/its/cm/dev/mikan/shared/lib
+LIB_SRT_FRM_DIR=/home/cm/hold/shared/lib
+LIB_DIR=/home/cm/hold/shared/lib
+#- System Include -------------------------------------------------------------
+
+include $(AMICUS_MAKERC)
+
+#- C Compilation Flags --------------------------------------------------------
+
+# Other cc options (should contain $(DFLT_CFLAGS))
+PROD_FLAGS=TRUE
+# CFLAGS = $(DFLT_CFLAGS)
+CFLAGS =  $(DFLT_CFLAGS) -I$(FT_INCDIR) -g3
+
+# esqlc options (should contain $(DFLT_SCFLAGS))
+SCFLAGS = $(DFLT_SCFLAGS)
+
+#- C Executable Program -------------------------------------------------------
+
+# Name of executable file  ie  xxx
+# List of .o files linked into the executabl -ie xxx.o
+# Repeat the next two definitions for each executable
+
+# Use $(APP_BINDIR) if the EXE is to go into the /bin/ directory
+# Use $(APP_WBINDIR) if the EXE is for a WEB project and needs to be run from the browser
+# If using $(APP_WBINDIR) be sure to modify the "install" section at end of Makefile
+
+EXE1 = ../bin/msglog
+OBJECTS1 = msglog.o
+
+EXE2 = ../bin/wologer
+OBJECTS2 = wologer.o
+
+EXE3 = ../bin/vaulter
+OBJECTS3 = vaulter.o
+
+EXE4 = ../bin/vintload
+OBJECTS4 = vintload.o
+
+EXE5 = ../bin/vaultload
+OBJECTS5 = vaultload.o
+
+EXE6 = ../bin/vault_v240
+OBJECTS6 = vault_v240.o
+
+EXE7 = ../bin/vault_v360
+OBJECTS7 = vault_v360.o
+
+EXE8 = ../bin/vault_v480
+OBJECTS8 = vault_v480.o
+
+EXE9 = ../bin/wologload
+OBJECTS9 = wologload.o
+
+EXE10 = ../bin/wolog_wostat
+OBJECTS10 = wolog_wostat.o
+
+EXE11 = ../bin/wolog_w040
+OBJECTS11 = wolog_w040.o
+
+EXE12 = ../bin/wolog_w060
+OBJECTS12 = wolog_w060.o
+
+EXE13 = ../bin/wolog_w120
+OBJECTS13 = wolog_w120.o
+
+EXE14 = ../bin/wolog_w300
+OBJECTS14 = wolog_w300.o
+
+EXE15 = ../bin/wolog_w290
+OBJECTS15 = wolog_w290.o
+
+EXE16 = ../bin/wolog_w090
+OBJECTS16 = wolog_w090.o
+
+EXE17 = ../bin/wolog_w190
+OBJECTS17 = wolog_w190.o
+
+EXE18 = ../bin/userload
+OBJECTS18 = userload.o
+
+EXE19 = ../bin/wologmig
+OBJECTS19 = wologmig.o
+
+EXE20 = ../bin/vaultmig1
+OBJECTS20= vaultmig1.o
+
+EXE21 = ../bin/vaultmig2
+OBJECTS21= vaultmig2.o
+
+EXE22 = ../bin/vaultmig3
+OBJECTS22= vaultmig3.o
+
+# EXE20 = ../bin/type704tst
+# OBJECTS20= type704tst.o
+
+LIB = $(LIB_DIR)/libco_trl.a 
+
+# Names of all executable files - add to (remove from) list as required.
+EXE = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE5) $(EXE6) $(EXE7) $(EXE8) $(EXE9) \
+      $(EXE10) $(EXE11) $(EXE12) $(EXE13) $(EXE14) $(EXE15) $(EXE16) $(EXE17) $(EXE18) $(EXE19) \
+      $(EXE20) $(EXE21) $(EXE22)
+
+# List of non-system libraries linked into the executable
+PROJ_LIBS = $(LIB_SRT_FRM_DIR)/libsortform.a \
+            /home/vxn/mikan/shared/lib/libutlob.a \
+            $(LIB_DIR)/libcnv_ut.a
+
+# List of system libraries linked into the executable
+# use $(FT_LIBS) for Full/Text, $(ING_ESQLCLIBS) for Ingres Esqlc
+# --->> Using Oracle libraries
+SYS_LIBS = \
+    $(ORA_LIBS)
+
+# Other cc link options (should contain $(DFLT_LDFLAGS))
+LDFLAGS = $(DFLT_LDFLAGS)
+
+# Rule to link executable.
+# Repeat the next rule for each executable
+
+$(EXE1): $(LIB) $(OBJECTS1) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE1) $(OBJECTS1) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE2): $(LIB) $(OBJECTS2) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE2) $(OBJECTS2) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE3): $(LIB) $(OBJECTS3) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE3) $(OBJECTS3) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE4): $(LIB) $(OBJECTS4) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE4) $(OBJECTS4) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE5): $(LIB) $(OBJECTS5) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE5) $(OBJECTS5) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE6): $(LIB) $(OBJECTS6) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE6) $(OBJECTS6) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE7): $(LIB) $(OBJECTS7) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE7) $(OBJECTS7) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE8): $(LIB) $(OBJECTS8) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE8) $(OBJECTS8) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE9): $(LIB) $(OBJECTS9) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE9) $(OBJECTS9) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE10): $(LIB) $(OBJECTS10) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE10) $(OBJECTS10) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE11): $(LIB) $(OBJECTS11) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE11) $(OBJECTS11) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE12): $(LIB) $(OBJECTS12) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE12) $(OBJECTS12) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE13): $(LIB) $(OBJECTS13) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE13) $(OBJECTS13) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE14): $(LIB) $(OBJECTS14) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE14) $(OBJECTS14) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE15): $(LIB) $(OBJECTS15) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE15) $(OBJECTS15) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE16): $(LIB) $(OBJECTS16) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE16) $(OBJECTS16) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE17): $(LIB) $(OBJECTS17) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE17) $(OBJECTS17) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE18): $(LIB) $(OBJECTS18) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE18) $(OBJECTS18) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE19): $(LIB) $(OBJECTS19) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE19) $(OBJECTS19) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE20): $(LIB) $(OBJECTS20) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE20) $(OBJECTS20) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE21): $(LIB) $(OBJECTS21) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE21) $(OBJECTS21) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+$(EXE22): $(LIB) $(OBJECTS22) $(PROJ_LIBS)
+	$(LINK) $(LDFLAGS) -o $(EXE22) $(OBJECTS22) $(LIB) \
+	    $(PROJ_LIBS) $(SYS_LIBS)
+
+# $(EXE20): $(LIB) $(OBJECTS20) $(PROJ_LIBS)
+#	$(LINK) $(LDFLAGS) -o $(EXE20) $(OBJECTS20) $(LIB) \
+#	    $(PROJ_LIBS) $(SYS_LIBS)
+
+#- Targets --------------------------------------------------------------------
+
+all: $(EXE)
+	@echo
+	@echo make targets : "$?"
+	@echo
+
+
+install: $(EXE)
+	$(INSTALL) $(EXE) $(APPINST_BINDIR)
+	@echo
+	@echo installing targets:  "$?"
+	@echo
+	@echo "in $(APPINST_BINDIR)"
+	@echo
+
+clean:
+	- $(CLEAN) *.o
+	- $(CLEAN) *.i
+	- $(CLEAN) e-*.c
+	- $(CLEAN) *.lis
+	- $(CLEAN) p-*.c
+#	- $(CLEAN) $(EXE)
+
+
+#- Dependencies ---------------------------------------------------------------
+
+# DO NOT DELETE THIS LINE -- make depend depends on it.
