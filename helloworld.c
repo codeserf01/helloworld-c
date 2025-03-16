@@ -8,6 +8,7 @@ int x = 0;
 
 int main()
 {
+   
     printf("\n\n'x' variable, start: %i \n", x);
     x = 0;
     printf("%i - Hello world!", x);

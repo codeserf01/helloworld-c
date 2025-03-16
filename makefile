@@ -15,8 +15,8 @@ CFLAGS  = -g -Wall
 TARGET = helloworld
 
 # Build if the target (executable) is missing
-default: $(TARGET)
-		$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
+#default: $(TARGET)
+#		$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
 		
 # Build if the source has changed
 $(TARGET): $(TARGET).c
