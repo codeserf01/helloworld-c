@@ -1,0 +1,21 @@
+{
+    "makefile.configureOnOpen": true,
+    "dbcode.connections": [
+        {
+            "connectionId": "U9eCfZAZ4p9TrMsY5FWzH",
+            "name": "cranberrymdb",
+            "driver": "mariadb",
+            "connectionType": "host",
+            "host": "127.0.0.1",
+            "port": 3306,
+            "ssl": false,
+            "username": "root",
+            "savePassword": "secretStorage",
+            "readOnly": false,
+            "connectionTimeout": 30,
+            "driverOptions": {
+                "retrievePublickey": true
+            }
+        }
+    ]
+}
