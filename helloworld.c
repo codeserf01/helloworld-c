@@ -5,20 +5,29 @@
 
 // test some includes
 /* MariaDB include */
-#include <mariadb/mysql.h>
-
-
+// #include <mariadb/mysql.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+// Function declaration. Note that the parms are only type declarations here
+// You may include var names, but those are unneeded here
+int print_examples (int *, char []);
+int comp_strings(long int *, char [], char []);
 
+
+//main
+// All C programs must have a 'main'. It always begins here
 int main()
 {
   int a = 1;
   int x = 0;
+  long int strlength = 0;
   char character;
   char cword[10] = "\0\0\0\0\0\0\0\0\0\0";
+
+//  Normally this declaration is found here, but I'm putting it where it will be used
+//  int *ptr_to_a = NULL;
 
   printf("Hello world!");
   
@@ -30,24 +39,24 @@ int main()
   x++;
   character = 'w';
   cword[0] = character;
-  printf(" Next: 'x': %i, char: %c, word: %s, length: %li\n", x, character, cword, strlen(cword));
+  printf(" Next: 'x': %i, char: %c, word: %s, length: %ld\n", x, character, cword, strlen(cword));
   x++;
   character = 'o';
   cword[1] = character;
-  printf(" Next: 'x': %i, char: %c, word: %s, length: %li\n", x, character, cword, strlen(cword));
+  printf(" Next: 'x': %i, char: %c, word: %s, length: %ld\n", x, character, cword, strlen(cword));
   x++;
   character = 'r';
   cword[2] = character;
-  printf(" Next: 'x': %i, char: %c, word: %s, length: %li\n", x, character, cword, strlen(cword));
+  printf(" Next: 'x': %i, char: %c, word: %s, length: %ld\n", x, character, cword, strlen(cword));
   x++;
   character = 'd';
   cword[3] = character;
-  printf(" Next: 'x': %i, char: %c, word: %s, length: %li\n", x, character, cword, strlen(cword));
+  printf(" Next: 'x': %i, char: %c, word: %s, length: %ld\n", x, character, cword, strlen(cword));
   x++;
   character = 's';
   cword[4] = character;
   printf(" Added character for good luck: %c\n", character);
-  printf(" Result: 'x': %i, char: %c, word: %s, length: %li\n", x, character, cword, strlen(cword));
+  printf(" Result: 'x': %i, char: %c, word: %s, length: %ld\n", x, character, cword, strlen(cword));
 
   // while loop test - test before the loop iteration
   printf("-------------------------\n");
@@ -165,8 +174,86 @@ int main()
     }
     printf("\n");
   }
+  printf("-------------------------\n");
+
+  printf("Some pointer stuff:\n");
+
+  // Normally this is found with the other declarations, but for code clarity
+  // I'm putting it here. This is all a coding refresher, after all
+
+  int *ptr_to_a = NULL;       // declare the pointer, default it to NULL
+  ptr_to_a = &a;              // point it to the var you intend
+  a = 5;                      // give the var a value to work with
+  printf("The starting value of a is %d\n", a);    // display it at the start
+
+  *ptr_to_a = 6;              // change the var's value via the pointer. note the '*' prefix
+  printf("The updated value of a, updated through the pointer, is %d\n", a);    // display the result
+
+  // display the various parts of pointer usage
+  // Note this example converts a pointer to an printable integer value.
+  // Conversion/cast is needed to compile this without compiler warning(s)
+  printf("The value of physical pointer (physical address) ptr_to_a is %ld \n",( (long int)ptr_to_a) );  // display the value of the actual pointer (a physical address)
+  printf("The value of a, using the pointer, is %d\n", *ptr_to_a);      // display the value of the address/var the pointer is pointing to
+  printf("The physical address of a is %ld\n", ((long int) &a) );             // display the physical address of the 'a' variable
+
+  printf("-------------------------\n");
+  printf("Some function stuff with strings:\n");
+  printf("Initial (pre-function call) value of a: %d\n", a);
+  print_examples (&a, "This is a test string");
+  printf("main: updated value of \'a\' (ie. calculated string length): %d\n",a);
+  printf("-------------------------\n");
+  
+  // Some string manipulation stuff
+  comp_strings(&strlength, "This is a first string.", "This is another string.");
+//  comp_strings(&strlength, "This is a first string", "This is a second string");
+  printf("Combined length of the two strings: %ld\n", strlength);
 
 
 
+printf("\n");
+  return 0;
+} /* main */
+
+// function call 
+// This is somewhere past 'main', where I like it (main should be at the top)
+// To avoid compiler error/warning, there is a function declaration at the top, so the 
+// the compiler will know what the function call should look like when it encounters one.
+int print_examples (int * l, char b[])
+{
+  int charlen = 0;
+
+  charlen = strlen(b);
+  *l = charlen;  
+  
+  printf("Print_examples: parms passed: a (int) = %d, string (char string): \"%s\", length: %d.\n", *l, b, charlen);
+
+  return 0;
+} /* print_examples */
+
+int comp_strings(long int *l, char str1[], char str2[])
+{
+  // do some string manipulations as outlined in the book
+  // sometimes it's worth initializing a string field but usually it's just extra work
+  //  char full_text[50] = "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0";
+  char full_text[50];
+
+  printf ("Comp: Value passed by \'a\': %ld\n", *l );
+  printf("String 1 passed by \'str1\': %s, length: %ld\n", str1, strlen(str1));
+  printf("String 2 passed by \'str2\': %s, length: %ld\n", str2, strlen(str2));
+  *l = strlen(str1) + strlen(str2);
+  if ( strlen(str1) == strlen(str2))
+    printf("Strings are the same length.\n");
+  else 
+    printf("Strings are not the same length.\n");
+  if ( strcmp(str1, str2) == 0 )
+    printf("Strings are the identical.\n");
+  else
+    printf("Strings are diffewrent.\n");
+  strcpy(full_text, str1);
+  printf("Copying \'str1\' into the full-text space: \'%s\'. \n", full_text);
+  strcat(full_text, " ");
+  strcat(full_text, str2);
+  printf("Adding a space and then \'str2\' into the full-text space: \'%s\'. String length: %ld\n", full_text, strlen(full_text));
+ 
   return 0;
 }

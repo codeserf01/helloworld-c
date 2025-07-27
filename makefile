@@ -1,27 +1,47 @@
 # makefile
-# Generic make file for running a compile of helloworld.c
+# Comprehansive make file for all compiles of modules
+# created in the project/coding refresher
 
-# the compiler: 'gcc' for C program, 'g++' for C++ program
+# The compiler: 'gcc' for C program, 'g++' for C++ program
 CC = gcc
 
-
-# compiler flags:
+# Compiler flags:
 #  -g    adds debugging information to the executable file
 #  -Wall turns on most, but not all, compiler warnings
 CFLAGS  = -g -Wall
 
 
-# the build target executable:
-TARGET = helloworld
+# The build targets - executables:
+EXE1 = ./helloworld
+EXE2 = ./hello2
 
-# Build if the target (executable) is missing
-#default: $(TARGET)
-#		$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
-		
-# Build if the source has changed
-$(TARGET): $(TARGET).c
-		$(CC) $(CFLAGS) -o $(TARGET) $(TARGET).c
+# Make a list of all the .exe's that should be built as necessary
+EXE = $(EXE1) $(EXE2)
+
+# Make directive: Build all where the target (executable) is missing
+# This just directs to the 'all' label by default
+default: all
+
+#Individual build rules:
+# Build individual if the source has changed 
+$(EXE1): $(EXE1).c
+		$(CC) $(CFLAGS) -o $(EXE1) $(EXE1).c
+
+# Build individual if the source has changed
+$(EXE2): $(EXE2).c
+		$(CC) $(CFLAGS) -o $(EXE2) $(EXE2).c
+
+#-----------------------------------------------------------
+# Build all where the exe is missing
+# EXE is a list of executables/targets
+# As specified above, 'all' is the default
+
+all: $(EXE)
+	@echo
+	@echo make targets : "$?"
+	@echo
 
 # No build - delete/cleanup
 clean: 
-		$(RM) $(TARGET)
+		$(RM) $(EXE1)
+		$(RM) $(EXE2)

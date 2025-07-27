@@ -1,5 +1,6 @@
 # ignore files for this project
 
 helloworld
+hello2
 *.swp
 log.txt
