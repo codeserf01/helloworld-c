@@ -1,0 +1,8 @@
+Test input file.
+----------------
+
+This file is a simple text file to explore file manipulation features within a C-code program.
+
+There should not be anything important or significant entered here.
+
+It's only important that there is this file with <anything>, just to ba able to reference it from a C program.
