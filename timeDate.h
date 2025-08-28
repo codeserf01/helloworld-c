@@ -14,10 +14,19 @@
   {
     // Default char times & dates
     char LocalTimeStamp[22];  // MariaDB/MySQL text formatted timestamp - local time
+  
     char Localfulltime [21];  // format: dd mmm yyyy hh:mm:ss
     char Localfulltimeh[21];  // format: dd-mmm-yyyy-hh:mm:ss - hyphenated
+    char Localfulltimes[21];  // format: dd/mmm/yyyy/hh:mm:ss - slashes
+  
+    char lyearmnthdaytm[21];  // format: yyyy mmm dd hh:mm:ss
+    char lyearmnthdaytmh[21]; // format: yyyy-mmm/dd hh:mm:ss - hyphenated
+    char lyearmnthdaytms[21]; // format: yyyy-mmm/dd hh:mm:ss - slashes
+  
+    char lyrmndys[7];         // format: yymmdd
     char Localdate[12];       // format: dd mmm yyyy
     char Localdateh[12];      // format: dd-mmm-yyyy - hyphenated
+    char Localdates[12];      // format: dd-mmm-yyyy - hyphenated
     char Localtime[9];        // format: hh:mm:ss
     // char GMTTimeStamp[22];    // MariaDB/MySQL text formatted timestamp - GMT time
     char GMTfulltime[20];     // format: dd mmm yyyy hh:mm:ss
@@ -26,6 +35,7 @@
     char ldate6[7];           // format: ddmm99
     char ldate7[8];           // format: ddmmm99
     char ldate10[10];         // format: dd mmm 99
+
     // Individual date component values
     int  lyear;               // Local year - int value
     char lyear4[5];           // local 4 figure year - text

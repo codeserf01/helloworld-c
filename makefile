@@ -15,9 +15,9 @@ CFLAGS  = -g -Wall
 EXE1 = ./helloworld
 EXE2 = ./hello2
 EXE3 = ./hello3
-
+EXE4 = ./timestrings
 # Make a list of all the .exe's that should be built as necessary
-EXE = $(EXE1) $(EXE2) $(EXE3)
+EXE = $(EXE1) $(EXE2) $(EXE3) $(EXE4) 
 
 # Make directive: Build all where the target (executable) is missing
 # This just directs to the 'all' label by default
@@ -36,6 +36,9 @@ $(EXE2): $(EXE2).c
 $(EXE3): $(EXE3).c
 		$(CC) $(CFLAGS) -o $(EXE3) $(EXE3).c
 
+# Build individual if the source has changed
+$(EXE4): $(EXE4).c
+		$(CC) $(CFLAGS) -o $(EXE4) $(EXE4).c
 
 #-----------------------------------------------------------
 # Build all where the exe is missing
@@ -52,3 +55,4 @@ clean:
 		$(RM) $(EXE1)
 		$(RM) $(EXE2)
 		$(RM) $(EXE3)
+		$(RM) $(EXE4)
