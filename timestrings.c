@@ -22,50 +22,53 @@ int main(int argc, char *argv[])
 {
   /* First, some basic program info, because it's available and I can get it */
   memset(pgm_name, '\0', sizeof(pgm_name));                             // Initialize, in case of initiall dirty buffer
-  strcpy(pgm_name, argv[0]);                                            // Get the input name for this program
-  printf("\n Program %s start\n", pgm_name + 2);                        // Display the program's name
-  printf(" Program Compile Date/Time: %s/%s\n\n", __DATE__, __TIME__);  // Display compile time and date
+  strcpy(pgm_name, argv[0]);                                            // Get this program's name at runtime
+  printf("\n Program %s start\n", pgm_name + 2);                        // Display this program's name
+  printf(" Program Compile Date/Time: %s/%s\n\n", __DATE__, __TIME__);  // Display this program's compile date and time
  
   /*
-  *  time_t()) will give you the system's time, upon which all other times (ie. wrt timezones, etc) 
-  *  may be used as often as needed.
+  *  time_t()) will give you the system's 'raw' time at the call's time.
+  *  Then use localtime()/gmtime(), etc. to produce local, GMT, etc times, using the time()'s returned value.
+  * 
   *  For future consideration:
   *  If you're using pointers only to refer to time, remember that localtime() or gmtime() both return a pointer to the SAME 
-  *  system buffer!! Make a COPY of this data for later use if need more that simply local time (ie. UTC) because it will be 
-  *  changed with a call to gmtime() or some other system call.  
-  *  So, if you want to use local time, be sure that the last call was localtime() to set this buffer correctly to local time.
-  *  Conversely, if you then want UTC/GMT time, be sure that you explicitly call gmtime() immediately before. Better yet, make
-  *  a local copy for each time structure for later use if needed.
+  *  system buffer!! Make a COPY of this time/date data for later use if need. This buffer will change with any subsequent 
+  *  system calls (ie. localtime(), gmtime(), etc...
+  *  So, if you want to use local time, be sure that the last call was localtime(). Conversely, if you later want UTC/GMT time,
+  *  be sure that you explicitly call gmtime() immediately before. Better yet, make a copy when you make a call.
   *  Remember that both need the time() call to provide the initial system time, but that need not change (so you can work off the 
   *  same initial system time call as often as you want.
   */
 
-  time_t   system_Time = time(NULL);                    // local copy of system raw time 
-  struct  tm loc_Time  = *localtime(&system_Time);      // local copy and init of the derived local time structure
-  struct  tm UTC_Time  = *gmtime(&system_Time);         // local copy and init of the derived GMT/UTC time structure
-  char loc_Time_str[25];                                // local date & time string
-  char UTC_Time_str[25];                                // GMT/UTC date & time string
-  char gen_datetimestr[50];
-  // when you want to define first and later assign values, this is how it looks:
+  time_t   system_Time = time(NULL);                    // define and init a local copy of the system raw time 
+  struct  tm loc_Time  = *localtime(&system_Time);      // define and init a local copy of the derived local time
+  struct  tm UTC_Time  = *gmtime(&system_Time);         // define and init a local copy of the derived GMT/UTC time structure
+  char loc_Time_str[25];                                // local date & time string (used later)
+  char UTC_Time_str[25];                                // GMT/UTC date & time string (used later)
+  char gen_datetimestr[50];                             // generic date/time string
+  
+  /*--------------------------------------------------------------------------------------------------------------------*/
+  // 'Old School' alternative to above: Define first and then assign values:
   // system_Time = time(NULL);                             // Initialize the local time to the system time
-  // loc_Time   = *localtime(&system_Time);                // take a copy of the derived local time structure
-  // UTC_Time   = *gmtime(&system_Time);                   // take a copy of the derived GMT time structure
-
+  // struct  tm loc_Time;                                  // define a local copy of the derived local time
+  // struct  tm UTC_Time;                                  // define a local copy of the derived GMT/UTC time structure
+  // loc_Time   = *localtime(&system_Time);                // initialize a copy of the derived local time structure
+  // UTC_Time   = *gmtime(&system_Time);                   // initialize a copy of the derived GMT time structure
+  /*--------------------------------------------------------------------------------------------------------------------*/
 
   memset(loc_Time_str, '\0', sizeof(loc_Time_str));        // initialize first 
   memset(UTC_Time_str, '\0', sizeof(UTC_Time_str));        // initialize first
   memset(gen_datetimestr, '\0', sizeof(gen_datetimestr));  // initialize first
 
-  strncpy(loc_Time_str, asctime(&loc_Time), 24);        // derive and copy the date & time string, leaving out the trailing '\n' char
-  strncpy(UTC_Time_str, asctime(&UTC_Time), 24);        // derive and copy the date & time string, leaving out the trailing '\n' char
+  strncpy(loc_Time_str, asctime(&loc_Time), 24);        // create a basic local time date/time string, leaving out the trailing '\n' char
+  strncpy(UTC_Time_str, asctime(&UTC_Time), 24);        // create a basic GMT date/time string, leaving out the trailing '\n' char
   // sprintf(UTC_Time_str, "%s", asctime(&UTC_Time));
 
   printf("Current time: (local): %s, ", loc_Time_str);    // Print out the 'local time' string
   printf("(UTC): %s\n\n", UTC_Time_str);                    // add to the line the UTC time string
 
   
-  printf("Date & time examples using strftime:\n");
-
+  printf("Some date & time examples using the strftime() date/time formatting function:\n");
   strftime(gen_datetimestr, sizeof(gen_datetimestr), "%c", &loc_Time);
   printf("Date & time using strftime - c option - Local Date and time: %s \n", gen_datetimestr);
 
