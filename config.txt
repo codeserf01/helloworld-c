@@ -1,1 +1,1 @@
-configuration file for the supposed hello world project
+> configuration file for the supposed hello world project

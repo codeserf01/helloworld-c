@@ -12,7 +12,45 @@
 
 // #include "timeDate.h"
 
+
+/* Control and processing values (Shamelessly copied from some programs
+   I had produced while still gainfully employed so many years ago.               */
+
+/* Buffers and vars that may be referenced throughout this listing                */
+/* Some basic input and control buffers, vars, etc. for this program.             */
+
 char pgm_name[40];                            // Program name - This program
+/*
+char todaydate[7];                            // System date
+char input_file_name[100];                    // Principle input file to this program
+char full_input_file_name[100];               // Fully qualified input file name
+char log_file_name[100];                      // This program's output log file name
+char full_log_file[100];                      // Fully qualified output log file name
+char debug_file_name[100];                    // This program's debug info file name
+char full_debug_file[100];                    // Fully qualified debug info file name
+
+char input_file_basename[100];                // 1st part of input file name
+char input_file_findtype[100];                // Which FIND file type - from basename
+char input_file_findtype_u[100];              // FIND file type - in UPPER CASE
+*/
+
+/* Any connection vars needed for a database connection */
+// char *userid;
+// char *conn_name;
+// char db_env[26];
+
+/* Time buffers to determine local time */
+// struct tm *t_ptr_sys;                      // Time struct to hold the local system time
+// time_t sys_t;                              // variable to store the local system time
+// char now_time_date_loc[26],                // Store the current local system time &  date
+// now_time_date_utc[26];                     // store local time&date in GMT time
+
+// More, formatted time vars for display/store/ etc based on the system time sys_t
+// char rundate[26];
+// char current_date[12];                     // Oracle-compatable date 
+// char current_date6[7];                     // Short-form date: yymmdd
+// char nowdate[26];                          // today's date 
+// char tmp_mnth[3];                          // today's month (abbreviated)
 
 int main(int argc, char *argv[])
 {
@@ -38,7 +76,7 @@ int main(int argc, char *argv[])
   
   /* Get the runtime program name from the argument list and strip off the leading navigation/directory chars */
   i = 0;                                                   
-  while ( isalnum(argv[0][i] ) == 0)                       // Skip leading non-alphanumeric chars, get the start position of the program name string               
+  while ( isalnum(argv[0][i] ) == 0)                       // Detect non-alphanumeric char, skip of found
     i++;
   strcpy(pgm_name, argv[0]+i);                             // Get this program's name at runtime
     

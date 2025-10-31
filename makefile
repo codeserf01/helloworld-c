@@ -16,8 +16,9 @@ EXE1 = ./helloworld
 EXE2 = ./hello2
 EXE3 = ./hello3
 EXE4 = ./timestrings
+EXE10 = ./base_template
 # Make a list of all the .exe's that should be built as necessary
-EXE = $(EXE1) $(EXE2) $(EXE3) $(EXE4) 
+EXE = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE10) 
 
 # Make directive: Build all where the target (executable) is missing
 # This just directs to the 'all' label by default
@@ -40,6 +41,10 @@ $(EXE3): $(EXE3).c
 $(EXE4): $(EXE4).c
 		$(CC) $(CFLAGS) -o $(EXE4) $(EXE4).c
 
+# Build individual if the source has changed
+$(EXE10): $(EXE10).c
+		$(CC) $(CFLAGS) -o $(EXE10) $(EXE10).c
+
 #-----------------------------------------------------------
 # Build all where the exe is missing
 # EXE is a list of executables/targets
@@ -56,3 +61,4 @@ clean:
 		$(RM) $(EXE2)
 		$(RM) $(EXE3)
 		$(RM) $(EXE4)
+		$(RM) $(EXE10)

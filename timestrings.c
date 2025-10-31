@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
   char gen_datetimestr[50];                             // generic date/time string
   
   /*--------------------------------------------------------------------------------------------------------------------*/
-  // 'Old School' alternative to above: Define first and then assign values:
+  // 'Old School' alternative to above: Define first (usually as a Global) and then assign values:
   // system_Time = time(NULL);                             // Initialize the local time to the system time
   // struct  tm loc_Time;                                  // define a local copy of the derived local time
   // struct  tm UTC_Time;                                  // define a local copy of the derived GMT/UTC time structure
