@@ -10,15 +10,25 @@ CC = gcc
 #  -Wall turns on most, but not all, compiler warnings
 CFLAGS  = -g -Wall
 
+BIN  = ./bin/
+SRC  = ./src/
 
 # The build targets - executables:
-EXE1 = ./helloworld
-EXE2 = ./hello2
-EXE3 = ./hello3
-EXE4 = ./timestrings
-EXE10 = ./base_template
+EXE01  = $(BIN)helloworld
+EXE02  = $(BIN)hello2
+EXE03  = $(BIN)hello3
+EXE04  = $(BIN)timestrings
+EXE10  = $(BIN)base_template
+
+# The source codes
+SRC01  = $(SRC)helloworld
+SRC02  = $(SRC)hello2
+SRC03  = $(SRC)hello3
+SRC04  = $(SRC)timestrings
+SRC10  = $(SRC)base_template
+
 # Make a list of all the .exe's that should be built as necessary
-EXE = $(EXE1) $(EXE2) $(EXE3) $(EXE4) $(EXE10) 
+EXE = $(EXE01) $(EXE02) $(EXE03) $(EXE04) $(EXE10) 
 
 # Make directive: Build all where the target (executable) is missing
 # This just directs to the 'all' label by default
@@ -26,24 +36,24 @@ default: all
 
 #Individual build rules:
 # Build individual if the source has changed 
-$(EXE1): $(EXE1).c
-		$(CC) $(CFLAGS) -o $(EXE1) $(EXE1).c
+$(EXE01): $(SRC01).c
+		$(CC) $(CFLAGS) -o $(EXE01) $(SRC01).c
 
 # Build individual if the source has changed
-$(EXE2): $(EXE2).c
-		$(CC) $(CFLAGS) -o $(EXE2) $(EXE2).c
+$(EXE02): $(SRC02).c
+		$(CC) $(CFLAGS) -o $(EXE02) $(SRC02).c
 
 # Build individual if the source has changed
-$(EXE3): $(EXE3).c
-		$(CC) $(CFLAGS) -o $(EXE3) $(EXE3).c
+$(EXE03): $(SRC03).c
+		$(CC) $(CFLAGS) -o $(EXE03) $(SRC03).c
 
 # Build individual if the source has changed
-$(EXE4): $(EXE4).c
-		$(CC) $(CFLAGS) -o $(EXE4) $(EXE4).c
+$(EXE04): $(SRC04).c
+		$(CC) $(CFLAGS) -o $(EXE04) $(SRC04).c
 
 # Build individual if the source has changed
-$(EXE10): $(EXE10).c
-		$(CC) $(CFLAGS) -o $(EXE10) $(EXE10).c
+$(EXE10): $(SRC10).c
+		$(CC) $(CFLAGS) -o $(EXE10) $(SRC10).c
 
 #-----------------------------------------------------------
 # Build all where the exe is missing
@@ -57,8 +67,8 @@ all: $(EXE)
 
 # No build - delete/cleanup
 clean: 
-		$(RM) $(EXE1)
-		$(RM) $(EXE2)
-		$(RM) $(EXE3)
-		$(RM) $(EXE4)
+		$(RM) $(EXE01)
+		$(RM) $(EXE02)
+		$(RM) $(EXE03)
+		$(RM) $(EXE04)
 		$(RM) $(EXE10)

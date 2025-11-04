@@ -1,6 +1,10 @@
 # ignore files for this project
 
-helloworld
-hello2
+./bin/helloworld
+./bin/hello2
+./bin/hello3
+./bin/base_template
+./bin/hellox
+./bin/timestrings
 *.swp
 log.txt

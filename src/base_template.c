@@ -1,7 +1,11 @@
-/*  hello3.c
-    This program, corresponding to chapter 10 in the book, does file
-    manipulation. Added features will be entering files names and
-    processing/debug flags through program input parameters.
+/*  base_template.c
+    This program is a base template for future programs written my me.
+    It is a basic template that does some initial startup stuff that I 
+    like to have in programs, such as:
+    - Program information at run time
+    - input and output files, if any
+    - startup parameters from the input line of configuration file, if any
+    - any other basic output that I might want up front
 */
 
 #include <stdlib.h>                         // C Standard library
@@ -52,9 +56,18 @@ char input_file_findtype_u[100];              // FIND file type - in UPPER CASE
 // char nowdate[26];                          // today's date 
 // char tmp_mnth[3];                          // today's month (abbreviated)
 
+
+
+
+/* Function profiles */
+int Get_runtime_parms(int, char *[]);
+
+
+
 int main(int argc, char *argv[])
 {
-  int i = 0;                                               // Generic increment counter
+  int i   = 0;                                             // Generic increment counter
+  int ret = 0;                                             // Generic return code reader
 
   /* Hint: Get some alternative time/date ideas from the program timeDate.c  */
   time_t   system_Time = time(NULL);                       // define and init a local copy of the system raw time 
@@ -76,22 +89,26 @@ int main(int argc, char *argv[])
   
   /* Get the runtime program name from the argument list and strip off the leading navigation/directory chars */
   i = 0;                                                   
-  while ( isalnum(argv[0][i] ) == 0)                       // Detect non-alphanumeric char, skip of found
+  while ( isalnum(argv[0][i] ) == 0)                       // Detect non-alphanumeric char, skip it if found
     i++;
-  strcpy(pgm_name, argv[0]+i);                             // Get this program's name at runtime
+  strcpy(pgm_name, argv[0]+i);                             // Keep the resulting program name
     
-  printf("\n Program: %s\n", pgm_name);                    // Display this program's name but skip the './' leading characters
+  printf("\n Program: %s\n", pgm_name);                    // Display this program's name
   printf(" Program Compile Date/Time: %s/%s\n\n", __DATE__, __TIME__);  // Display this program's compile date and time
 
   printf(" Current time: (local): %s, ", loc_Time_str);    // Print out the 'local time' string
   printf(" (UTC): %s", UTC_Time_str);                      // include UTC time to the string 
   printf("\n\n");                                          // finish line with line feed(s) 
 
+  /* Get any further run-time parameters */
+  ret = 0;
+  ret = Get_runtime_parms(argc, argv);
+  if (ret == 4)
+  {
+    printf("*** Return code 4, ending this program run now.\n");
 
-
-
-
-  
+    return ret;
+  }
 
 
   /* Now get the specific processing environment(s) vars that this program needs to work in,
@@ -103,82 +120,60 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-
-/*
-int get_weekday(char * str) {
-  struct tm tm;
-  memset((void *) &tm, 0, sizeof(tm));
-  if (strptime(str, "%d-%m-%Y", &tm) != NULL) 
-  {
-    time_t t = mktime(&tm);
-    if (t >= 0) {
-      return localtime(&t)->tm_wday; // Sunday=0, Monday=1, etc.
-    }
-  }
-  return -1;
-}
-*/
-/*
-const char *wd(int year, int month, int day) {
-  // using C99 compound literals in a single line: notice the splicing 
-  return ((const char *[])                                         \
-          {"Monday", "Tuesday", "Wednesday",                       \
-           "Thursday", "Friday", "Saturday", "Sunday"})[           \
-      (                                                            \
-          day                                                      \
-        + ((153 * (month + 12 * ((14 - month) / 12) - 3) + 2) / 5) \
-        + (365 * (year + 4800 - ((14 - month) / 12)))              \
-        + ((year + 4800 - ((14 - month) / 12)) / 4)                \
-        - ((year + 4800 - ((14 - month) / 12)) / 100)              \
-        + ((year + 4800 - ((14 - month) / 12)) / 400)              \
-        - 32045                                                    \
-      ) % 7];
-}
-*/
-
-/*
-int inittimestruct(&runtimeDate )
+int Get_runtime_parms(int pgm_argc, char *pgm_argv[])
 {
-  // comment out the call to the current time function for now
+  /*
+  Get and parse the program's runtime parameters.
+  Get the configuration file's parameters
+  Resolve them with the default values.
+  Open the program's log file using the resolved file name.
+  Open the program's detailed log file, if wanted, also using the resolved file name.
+  Set any  other runtime input parameters.
+  */
 
-  rc = get_time_date(&runtimeDate);
-  if (rc != 0)
-  {
-    printf("Couldn't get time(s) and date(s). Return code: %d\n\n\n ", rc);
-    return 0;
-  }
-  else
-  {
-    printf("Available date/time strings:\n");
-    printf("LocalTimeStamp (yyyymmddhhmmss): >%s<\n",      runtimeDate.LocalTimeStamp);
-    printf("Localfulltime (dd mmm yyyy hh:mm:ss): >%s<\n", runtimeDate.Localfulltime);
-    printf("Localfulltimeh(dd-mmm-yyyy-hh:mm:ss): >%s<\n", runtimeDate.Localfulltimeh);
-    printf("Localfulltimes(dd/mmm/yyyy/hh:mm:ss): >%s<\n", runtimeDate.Localfulltimes);
-    printf("yearmnthday   (yyyy mmm dd hh:mm:ss): >%s<\n", runtimeDate.lyearmnthdaytm);
-    printf("yearmnthdayh  (yyyy-mmm-dd hh:mm:ss): >%s<\n", runtimeDate.lyearmnthdaytmh);
-    printf("yearmnthdays  (yyyy/mmm/dd hh:mm:ss): >%s<\n", runtimeDate.lyearmnthdaytms);
-    printf("yrmndys       (yymmdd)              : >%s<\n", runtimeDate.lyrmndys);
-    printf("Localdate     (dd mmm yyyy)         : >%s<\n", runtimeDate.Localdate);
-    printf("Localdateh    (dd-mmm-yyyy)         : >%s<\n", runtimeDate.Localdateh);
-    printf("Localdates    (dd/mmm/yyyy)         : >%s<\n", runtimeDate.Localdates);
-    printf("Localtime     (hh:mm:ss)            : >%s<\n", runtimeDate.Localtime);
-    // printf("GMTTimeStamp  (xx xxx xxx hh:mm:ss): >%s<\n",  runtimeDate.GMTTimeStamp);
-    printf("GMTfulltime   (dd mmm yyyy hh:mm:ss): >%s<\n", runtimeDate.GMTfulltime);
-    printf("GMTfulltimeh  (dd-mmm-yyyy-hh:mm:ss): >%s<\n", runtimeDate.GMTfulltimeh);
-    printf("ldate5         (ddmmm)              : >%s<\n", runtimeDate.ldate5);
-    printf("ldate6         (ddmmyy)             : >%s<\n", runtimeDate.ldate6);
-    printf("ldate7         (ddmmm99)            : >%s<\n", runtimeDate.ldate7);
-    printf("ldate10        (dd mmm yy)          : >%s<\n", runtimeDate.ldate10);
-    printf("lyear            (int): >%d<, lyear4 (yyyy): >%s< lyear2 (yy): >%s<\n", runtimeDate.lyear, runtimeDate.lyear4, runtimeDate.lyear2);
-    printf("lmonth_num       (int): >%d<, lmonth2(mmm) : >%s<\n", runtimeDate.lmonth_num, runtimeDate.lmonth2);
-    printf("month_full (text name): >%s<, month_abbv (mmm): >%s<\n", runtimeDate.lmonth_full, runtimeDate.lmonth_abbv);
-    printf("lday             (int): >%d<, lday2  (dd): >%s<\n", runtimeDate.lday, runtimeDate.lday2);
-    printf("Hour: l24hour_num (int):>%d<, (text):>%s<,\n      l12hour_num (int):>%d<,  (text):>%s<\n", 
-                                                     runtimeDate.l24hour_num, runtimeDate.l24hour, runtimeDate.l12hour_num, runtimeDate.l12hour);
-    printf("lmin_num    (int):>%d<, (text):>%s<,\n", runtimeDate.lmin_num,  runtimeDate.lmin);
-    printf("lsec_num    (int):>%d<, (text):>%s<\n",  runtimeDate.lsec_num,  runtimeDate.lsec);
-  }
-  
+  /*
+  First read in any run-time parameters and parse them.
+  */
+    int param = 0;
+
+    printf("Program parameters (strings) at run time:\n");
+
+    // Simple alternative: display the first character of each parameter
+    printf("Input parms - first character of each parm at run time:\n");
+    printf("Parameter count: %d\n", pgm_argc);
+    /*
+      If too many parameters, then end an error message and end immediately 
+    */
+    if (pgm_argc > 6)
+    {
+      printf("*** Parameter count: %d, Too many runtime parameters. ***\n", pgm_argc);
+
+      return 4;
+    }
+
+
+
+
+    param = 0;
+    while (param < pgm_argc)
+    {
+      printf("Parameter %d is %c\n", param, *pgm_argv[param]);
+      /* Parse the input parm */
+
+
+
+
+
+
+
+
+
+
+
+
+      param++;
+    }
+
+
   return 0;
 }
-*/
