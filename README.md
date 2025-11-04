@@ -5,5 +5,7 @@ Done for learning/tutorial purposes.
 
 Putting a new line for supposed clarity in what the readme file is supposed to say.
 
-A basic program was added, "helloworld.c" to try out the VS Code feature for interfaceing with Github.
+Several basic programs have been added and changed multiple times. 
+Settling on a basic template program as a basis for further programming examples and testing.
+
 A test sub-directory now added
