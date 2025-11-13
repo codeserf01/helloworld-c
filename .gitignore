@@ -5,6 +5,7 @@
 ./bin/hello3
 ./bin/base_template
 ./bin/hellox
-./bin/timestrings
+./bin/hellox./bin/timestrings
 *.swp
+*.pc
 log.txt
