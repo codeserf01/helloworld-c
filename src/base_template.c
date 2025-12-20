@@ -22,31 +22,46 @@
 
 /* Buffers and vars that may be referenced throughout this listing                */
 /* Some basic input and control buffers, vars, etc. for this program.             */
-/* Default values - in case the program is run without input partms or config values */
-char def_cfg_filename    [] = "./template_config.txt\0"; // Default pgm configuration input file name
+
+/* Default values - in case this program is run without input parms or a config file 
+   that include one or more of the following 'def_' values.
+   All of these def files should be included in the program's config file
+   but are listed here in case there isn't a config file found or some values 
+   are not found in the file.
+*/
+char def_cfg_filename    [] = "./template_config.txt\0"; // Configuration file name - should be the same as the final pgm name
 char def_log_filename    [] = "./logfile.txt\0";         // Default output log file name
-char def_det_filename    [] = "./detail_log.txt\0";      // Default detailed log output file name
+char def_det_filename    [] = "./detail_log.txt\0";      // Default detailed log file name
 char def_output_filename [] = "./output.txt\0";          // Default program standard processing output file name
 
-/* Set at runtime, either withthe default values (above) or runtime input parms */
-char pgm_name[40];                                    // Program name - This program, minus leading non-alpha chars
+char def_data_path       [] = "../data/\0";              // Default path to the input data file location
+char def_output_path     [] = "../output/\0";            // Default path to the pgm output file(s)
+char def_log_path        [] = "../log/\0";               // Default path to the pgm output log(s)
+char def_debug_path      [] = "../log/\0";               // Default path to the pgm's debug listing files
+
+/* Set at runtime, either with the default values (above) or runtime input parms */
+char pgm_name[40];                                    // Program name - This program at run time, minus leading non-alpha chars
 char cfg_input          [100];                        // Program configuration file name
 char log_file           [100];                        // Program log output file
 char log_detail         [100];                        // Program detailed log output
 char output_file        [100];                        // Program standard output
 
-
+/* Debugging flags */
+int  debug_buf      = 0;                      // Flag: Create a debug output file
+int  debug_verbose  = 0;                      // Flag: Produce verbose debug information
+int  debug_all      = 0;                      // Flag: Produce all available debug information
+int  debug_disp_rec = 0;                      // Flag: Display input record
+char input_file_basename[100];                // 1st part of input file name
+char input_file_name[100];                    // Input file to this program
+char full_input_file_name[100];               // Fully qualified input file name
 
 /*
 char todaydate[7];                            // System date
-char input_file_name[100];                    // Principle input file to this program
-char full_input_file_name[100];               // Fully qualified input file name
 char log_file_name[100];                      // This program's output log file name
 char full_log_file[100];                      // Fully qualified output log file name
 char debug_file_name[100];                    // This program's debug info file name
 char full_debug_file[100];                    // Fully qualified debug info file name
 
-char input_file_basename[100];                // 1st part of input file name
 char input_file_findtype[100];                // Which FIND file type - from basename
 char input_file_findtype_u[100];              // FIND file type - in UPPER CASE
 */
@@ -72,9 +87,12 @@ char input_file_findtype_u[100];              // FIND file type - in UPPER CASE
 
 
 
+
 /* Function profiles */
 int Get_runtime_parms(int, char *[]);
 
+int extract_parm(int p_argc,char * p_argv[]);
+// int get_parm(p_argc, p_argv)
 
 /*------------------------------------------------------------------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
@@ -212,3 +230,252 @@ int Get_runtime_parms(int pgm_argc, char *pgm_argv[])
   else
     return 1;
 }
+
+
+/* ----------------------------------------------------------------------------- */
+/* extract_parm: Extract and parse the input parm                                */
+/*            (This doesn't include the required file name parm)                 */
+/* ----------------------------------------------------------------------------- */
+int extract_parm(int p_argc,char * p_argv[])
+{
+  char *ch;    /* char string pointer for loop */
+  int i;       /* loop increment */
+
+  /* Look for the hyphenated parameters and parse them */
+  if (strncmp( p_argv[1], "-", 1) == 0 )
+  {
+    printf(" *** Input parm: <%s>\n", p_argv[1]);
+
+    // Set debug flags
+
+
+
+
+
+
+
+    if ( (strncmp( p_argv[1], "-c=", 3) == 0 ) || (strncmp( p_argv[1], "-C=", 3) == 0 )  )
+    {
+      // Activate/de-activate frequent file buffer flushes
+      if      ( (strncmp( (p_argv[1] + 3), "B-", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "b-", 2) == 0 )  )
+      {
+        // Switch OFF frequent buffer flushes
+        debug_buf = 0;       /* Produce program debug trace information */
+        printf(" *** Debug: Switch OFF frequent buffer flushes ****\n");
+      }
+      /*
+      else if ( (strncmp( (p_argv[1] + 3), "B+", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "b+", 2) == 0 )  )
+      {
+        // Switch ON frequent buffer flushes
+        debug_buf = 1;       // Produce program debug trace information
+        printf(" *** Debug: Flush buffers frequently ****\n");
+      }
+
+      // Activate/de-activate displaying inout row contents before before processing
+      else if ( (strncmp( (p_argv[1] + 3), "D-", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "d-", 2) == 0 )  )
+      {
+        // Switch OFF displaying input record
+        debug_disp_row = 0;       // Produce program debug trace information
+        printf(" *** Debug: Switch OFF displaying rows before INSERT/UPDATE ****\n");
+      }
+
+      else if ( (strncmp( (p_argv[1] + 3), "D+", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "d+", 2) == 0 )  )
+      {
+        // Switch ON dispalying input record
+        debug_disp_row = 1;       // Produce program debug trace information
+        printf(" *** Debug: Switch ON displaying rows before INSERT/UPDATE ****\n");
+      }
+
+      // Activate/de-activate displaying dynamic memory release msgs
+      else if ( (strncmp( (p_argv[1] + 3), "R-", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "r-", 2) == 0 )  )
+      {
+        debug_mem = 0;       // Produce program debug trace information
+        printf(" *** Debug: Switch OFF displaying dynamic memory release msgs ****\n");
+      }
+      else if ( (strncmp( (p_argv[1] + 3), "R+", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "r+", 2) == 0 )  )
+      {
+        debug_mem = 1;       // Produce program debug trace information
+        printf(" *** Debug: Switch ON displaying dynamic memory release msgs ****\n");
+      }
+
+      // Activate/de-activate verbose mode - displaying detailed logic flow - the small stuff
+      else if ( (strncmp( (p_argv[1] + 3), "V-", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "v-", 2) == 0 )  )
+      {
+        debug_verbose = 0;       // Produce program debug trace information
+        printf(" *** Debug: Switch OFF verbose mode - displaying detailed logic flow ****\n");
+      }
+      else if ( (strncmp( (p_argv[1] + 3), "V+", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "v+", 2) == 0 )  )
+      {
+        debug_verbose = 1;       // Produce program debug trace information
+        printf(" *** Debug: Switch ON verbose mode - displaying detailed logic flow ****\n");
+      }
+
+      // THE HAMMER: Activate/de-activate ALL switchable debug statements - including the small stuff
+      else if ( (strncmp( (p_argv[1] + 3), "A-", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "a-", 2) == 0 )  )
+      {
+        debug_all = 0;       // Produce program debug trace information
+        printf(" *** Debug: Switch OFF *ALL* switchable debug statements (including the smaller stuff) ****\n");
+
+        debug_buf = 0;       // Produce program debug trace information
+        printf(" *** Debug: Switch OFF frequent buffer flushes ****\n");
+
+        debug_disp_row = 0;  // Produce program debug trace information
+        printf(" *** Debug: Switch OFF displaying rows before INSERT/UPDATE ****\n");
+
+        debug_mem = 0;       // Produce program debug trace information
+        printf(" *** Debug: Switch OFF displaying dynamic memory release msgs ****\n");
+
+        debug_verbose = 0;   // Produce program debug trace information
+        printf(" *** Debug: Switch OFF verbose mode - don't display more detailed logic flow ****\n");
+      }
+      else if ( (strncmp( (p_argv[1] + 3), "A+", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "a+", 2) == 0 )  )
+      {
+        debug_all = 1;       // Produce program debug trace information
+        printf(" *** Debug: Switch ON *ALL* switchable debug statements (including the smaller stuff) ****\n");
+
+        debug_buf = 1;       // Produce program debug trace information
+        printf(" *** Debug: Flush buffers frequently ****\n");
+
+        debug_disp_row = 1;       // Produce program debug trace information
+        printf(" *** Debug: Switch ON displaying rows before INSERT/UPDATE ****\n");
+
+        debug_mem = 1;       // Produce program debug trace information
+        printf(" *** Debug: Switch ON displaying dynamic memory release msgs ****\n");
+
+        debug_verbose = 1;      // Produce program debug trace information
+        printf(" *** Debug: Switch ON verbose mode - display more detailed logic flow ****\n");
+      }
+
+      else if ( (strncmp( p_argv[1], "-D=n", 4) == 0 ) || (strncmp( p_argv[1], "-d=n", 4) == 0 )  )
+      {
+        // Specify ?????? debug output
+        debug = 1;
+        printf(" *** Debug off ****\n");
+      }
+      */
+
+      else
+      {
+        printf(" ===== Invalid debug switch type: %s =====\n",p_argv[1]);
+        return(1);
+      }
+    }
+    /*
+    else if ( (strncmp( p_argv[1], "-db=", 4) == 0 ) || (strncmp( p_argv[1], "-DB=", 4) == 0 )  )
+    {
+      // Specify the Oracle database to connect to 
+      strcpy( db_env, (p_argv[1]+4) );
+
+      if ( (strcmp( db_env, "dev") == 0 ) || (strcmp( db_env, "DEV") == 0 ) )
+      {
+        userid     = userid_mk10g;
+        conn_mikan = conn_mikan_mk10g;
+        conn_name  = conn_name_dev;
+        //
+        //userid=userid_dev;
+        //conn_mikan = conn_mikan_dev;
+        //
+        printf(" **** Connecting to Mikan mk10g - DEV ****\n");
+      }
+      else if ( (strcmp( db_env, "qa") == 0 ) || (strcmp( db_env, "QA") == 0 ) )
+      {
+        userid     = userid_qa;
+        conn_mikan = conn_mikan_qa;
+        conn_name  = conn_name_qa;
+        printf(" **** Connecting to Mikan QA. ****\n");
+      }
+      else if ( (strcmp( db_env, "mig") == 0 ) || (strcmp( db_env, "MIG") == 0 ) )
+      {
+        userid     = userid_mig;
+        conn_mikan = conn_mikan_mig;
+        conn_name  = conn_name_mig;
+        printf(" **** Connecting to Mikan Migration (mig). ****\n");
+      }
+      else if ( (strcmp( db_env, "prod") == 0 ) || (strcmp( db_env, "PROD") == 0 )
+              )
+      {
+        userid     = userid_prod;
+        conn_mikan = conn_mikan_prd;
+        conn_name  = conn_name_prd;
+        printf(" **** Connecting to Mikan Prod. ****\n");
+      }
+      else if ( (strcmp(db_env, "prod_real") == 0) || (strcmp(db_env, "PROD_REAL") == 0) )
+      {
+        userid     = userid_mikan_prod_real;
+        conn_mikan = conn_mikan_prod_real;
+        conn_name  = conn_name_prd_real;
+        printf(" **** Connecting to Mikan Prod - real userid and tables. ****\n");
+      }
+      else
+        printf(" **** Don't know what I'm connecting to... ****\n");
+    }
+    else if (  (strncmp( p_argv[1], "-COMMIT", 6 ) == 0 ) || (strncmp( p_argv[1], "-commit", 6 ) == 0 )
+            )
+    {
+      commit_updtes = 1;      // 1 - Commit the database updates 
+      printf(" ****** -> Updates flagged for commitment.\n",p_argv[1]);
+    }
+    else if (  (strncmp( p_argv[1], "-PROD_TABLES", 6 ) == 0 ) || (strncmp( p_argv[1], "-prod_tables", 6 ) == 0 )
+            )
+    {
+      // When specified, use the 'official' production table names instead of the personal/testing table names 
+      prod_tables = 1;        // 1 - Use the production/official database tables 
+      printf(" ****** -> Using the official/production tables for processing.\n",p_argv[1]);
+    }
+    */
+
+    /* Parse input file name */
+    else if ( (strncmp( p_argv[1], "-i=", 3) == 0 ) || (strncmp( p_argv[1], "-I=", 3) == 0 )  )
+    {
+      memset(input_file_name,'\0',sizeof(input_file_name));
+      memset(input_file_basename,'\0',sizeof(input_file_basename));
+      memset(full_input_file_name,'\0',sizeof(full_input_file_name));
+
+      // Get the base name of the input file name -  everything except the last part
+      ch = p_argv[1]+3;
+      for (i=0; i < strlen(ch); i++)
+      {
+        if (ch[i] != '.')
+          input_file_basename[i] = ch[i];
+        else
+          if ( (strcmp(&ch[i],".txt") == 0) || (strcmp(&ch[i],".dat") == 0) )
+          {
+            break;
+          }
+          else
+          {
+            input_file_basename[i] = ch[i];
+          }
+      }
+      // printf(" base name: <%s>\n",input_file_basename);
+
+      // Construct the fully-qualified input file name
+      strcpy(full_input_file_name,def_data_path);
+      strcat(input_file_name,p_argv[1]+3);
+      strcat(full_input_file_name,p_argv[1]+3);
+      /*
+      printf(" *** Input file: %s\n",input_file_name);
+      printf(" *** Full input file: %s\n",full_input_file_name);
+      */
+    }
+    else
+    {
+      printf(" ===== Invalid switch type: %s =====\n",p_argv[1]);
+      return(10);
+    }
+    /*
+    else
+     // Code any extra flags here.
+     ** By default, skip any unknown flags
+    */
+
+    return(0);
+  }
+  else
+  {
+    printf(" ===== Invalid switch type: %s =====\n",p_argv[1]);
+    return(10);
+  }
+
+  return(0);
+} /*-- get_parm */

@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
   // use of ctime()
   char * timestr;
   timestr = ctime(&system_Time);
-  printf("\n\n>>>>>>> Current ctime is %s<<<<<<<<\n", timestr);
+  printf("\n\n>>>>>>> Current ctime is %s", timestr);
 
 
 
