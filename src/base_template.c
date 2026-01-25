@@ -5,7 +5,8 @@
     - Program information at run time
     - input and output files, if any
     - startup parameters from the input line of configuration file, if any
-    - any other basic setup and output that I might want up front
+    - any other basic setup and output that I might want up front.
+    - This is merely an outline program and not complete. Only a skeleton for layout and method.
 */
 
 // Turn off the MS-oriented secure function call warnings. They are considered near-useless anyway
@@ -80,24 +81,24 @@ char full_input_file_name[100];               // Fully qualified input file name
   char    UTC_Time_str[25];                   // char version of UTC_Time (formatted as needed)
   char    gen_datetimestr[50];                // Char version - working date/time string, formatted and used as needed
 
-  char    loc_start_Time_str[25];                   // local date & time string (used later)
-  char    UTC_start_Time_str[25];                   // GMT/UTC date & time string (used later)
+  char    loc_start_Time_str[25];             // local date & time string (used later)
+  char    UTC_start_Time_str[25];             // GMT/UTC date & time string (used later)
   char    gen_datetimestr[50];                // generic date/time string
-
+ 
 
 
 
 /* Function profiles */
-int Get_runtime_parms(int, char *[]);         // Read the runtime parms
-int extract_parm(int p_argc,char * p_argv[]); // Extract and edit an individual parm
-// int get_parm(p_argc, p_argv)
+int set_runtime_parms(int,   char *[]);       // Read the runtime parms
+int extract_parm(int, char * []);             // Extract and edit an individual parm
+int parse_parm  (int, char * []);             // Parse a command-line parameter
 
 /*------------------------------------------------------------------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
 {
-  int i   = 0;                                             // Generic increment counter
+  // int i   = 0;                                             // Generic increment counter
   int ret = 0;                                             // Generic return code reader
-
+  char *cptr = NULL;
   // --------------------------------------------------------------------------------------------------------------------------------
   /* Initialize time/date fields from system calls */
 
@@ -126,82 +127,49 @@ int main(int argc, char *argv[])
      We need to strip off the leading PATH chars which may contain BOTH non-char AND character directory names.. 
      Strip off everything up to and including the last '/' character
   */
-  
-  
-  i = 0;
-  while ( isalnum(argv[0][i] ) == 0)                            // Detect non-alphanumeric char, skip it if found
-    i++;
+  // i = 0;
   /*
   while ( isalnum(argv[0][i] ) == 0)                            // Detect non-alphanumeric char, skip it if found
     i++;
   */
-  strcpy(pgm_name, argv[0]+i);                                  // Keep the resulting program name
+  
+  //Find the LAST occurance of the char '/'
+  cptr = strrchr(argv[0], '/');
+ 
+  // Debug: Display the resulting string, which should show the program name only, at run-time. 
+  /*  
+    if (cptr != NULL) 
+    {
+      printf("String after the last occurrence of '/': %s\n", cptr+1);
+    } else
+    {
+      printf("Character not found.\n");
+    }
+  */
     
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  strcpy(pgm_name, cptr+1);                                  // Keep the resulting program name
+    
   printf("\n\nProgram: %s\n", pgm_name);                        // Display this program's name
-  printf("Program Compile Date/Time: %s/%s\n\n", __DATE__, __TIME__);  // Display this program's compile date and time
-
+  printf("Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Display this program's compile date and time
   printf("Current time: (local): %s, ", loc_start_Time_str);    // Print out the 'local time' string
   printf("(UTC): %s", UTC_start_Time_str);                      // include UTC time to the string 
   printf("\n\n");                                               // finish line with line feed(s) 
 
-  /* Set default runtime values. These *may* be overridden with runtime program parms or input config file info */
-  // Note: pgm_name is already set (above)...
-  
-  /* First, initialize everything to NULL */
-  memset(cfg_input,   '\0', sizeof(cfg_input));    
-  memset(log_file,    '\0', sizeof(log_file));    
-  memset(log_verbose, '\0', sizeof(log_verbose));    
-  memset(output_file, '\0', sizeof(output_file));    
- 
-  /* Pre-set the file names to their default values.
-     Format: [default path][program name]_[applicable file name]
-  */  
-  sprintf(cfg_input,   "%s%s_%s", def_path, pgm_name, def_cfg_filename);
-  sprintf(log_file,    "%s%s_%s", def_path, pgm_name, def_log_filename);
-  sprintf(log_verbose, "%s%s_%s", def_path, pgm_name, def_detlog_filename);
-  sprintf(output_file, "%s%s_%s", def_path, pgm_name, def_output_filename);
-
-  printf("Searching for configuration file: %s", cfg_input);
-
-
-
-
-
-  printf("\n\n");                                               // finish line with line feed(s) 
-
-  // strcpy(log_file,    def_log_filename);
-  // strcpy(cfg_input,   def_cfg_filename);
-  // strcpy(log_verbose, def_detlog_filename);
-  // strcpy(output_file, def_output_filename);    
-
-  /* Get any further run-time parameters */
+  /* Set defaults and get any further run-time parameters */
   ret = 0;
-  ret = Get_runtime_parms(argc, argv);
+  ret = set_runtime_parms(argc, argv);
   if (ret == 1)                         // No runtime command line parameters included
   {
-    printf("*** No runtime command line parameters. \n");
+    printf("*** Running with only default parameters. \n");
   }
   else
     if (ret == 4)                       // Problem with runtime command line parm(s) - ending program now.
     {
-      printf("*** Invalid runtime command line parm - ending program run now.\n");
+      printf("**** Bad/Invalid runtime input - ending now. ****\n");
 
       return ret;
     }
+
 
 
   /* Now get the specific processing environment(s) vars that this program needs to work in,
@@ -213,73 +181,98 @@ int main(int argc, char *argv[])
   return ret;
 } /* main */
 
-int Get_runtime_parms(int pgm_argc, char *pgm_argv[])
+int set_runtime_parms(int pgm_argc, char *pgm_argv[])
 {
-  /*
-  ----------------------------------------------------------------------------------
+  /* ----------------------------------------------------------------------------------
   Get and parse the program's runtime parameters.
   Get the configuration file's parameters
+  Priority for settings are:
+   3) Runtime command line parameter (highest)
+   2) Configuration file setting(s)
+   1) Default (lowest)
   Resolve them with the default values.
   Open the program's log file using the resolved file name.
   Open the program's detailed log file, if wanted, also using the resolved file name.
-  Set any  other runtime input parameters.
-  ----------------------------------------------------------------------------------
-  */
+  Set any other runtime input parameters.
+    ---------------------------------------------------------------------------------- */
+  /* Set default runtime values. These *may* be overridden with runtime program parms or input config file info */
+  // Note: pgm_name is already set (above)...
+  
+  /* First, initialize everything to NULL */
+  memset(cfg_input,   '\0', sizeof(cfg_input));    
+  memset(log_file,    '\0', sizeof(log_file));    
+  memset(log_verbose, '\0', sizeof(log_verbose));    
+  memset(output_file, '\0', sizeof(output_file));    
 
-  /*
-  First read in any run-time parameters and parse them.
-  */
-    int param = 1;            // .start with the 2nd parm - after the program name - '0'
+  /* Set the default values */ 
+  /* By default, look for the default configuration in the same directory as the program is run from */
+  //sprintf(cfg_input,   "%s%s_%s", def_path, pgm_name, def_cfg_filename);
+  sprintf(cfg_input,   "%s_%s", pgm_argv[0], def_cfg_filename);              // Default config file location
 
-    // printf("Program parameters (strings) at run time:\n");
+  // Remaining default output files - Format: [default path][program name]_[applicable file name]
+  // Note: By default the location will be the present working directory (ie. './')
+  sprintf(log_file,    "%s%s_%s", def_path, pgm_name, def_log_filename);     // Default pgm log file location
+  sprintf(log_verbose, "%s%s_%s", def_path, pgm_name, def_detlog_filename);  // Default pgm's detailed log location
+  sprintf(output_file, "%s%s_%s", def_path, pgm_name, def_output_filename);  // Default pgm's provessing log location
 
-    // Simple alternative: display the first character of each parameter
-    // printf("Input parms - first character of each parm at run time:\n");
-    printf("Program command line parameter count: %d\n", pgm_argc);
-    /*
-      If too many parameters, then end an error message and end immediately 
-    */
-    if (pgm_argc > 10)
-    {
-      printf("*** Parameter count: %d, Too many runtime parameters. ***\n", pgm_argc);
+  // First read in any run-time parameters and parse them.
 
-      return 4;
-    }
+  int param = 1;            // .start with the 2nd parm - after the program name - '0'
 
+  // printf("Program parameters (strings) at run time:\n");
 
+  printf("Parameter count after program name: %d\n", pgm_argc-1);
+  //  If too many parameters, end with an error message and return immediately 
+  if (pgm_argc > 10)
+  {
+    printf("*** Too many run-time parameters (%d). Not even trying... ***\n", pgm_argc);
 
-
-    param = 1;
-    while (param < pgm_argc)
-    {
-      printf("Parameter %d is %s\n", param, pgm_argv[param]);
-      /* Parse the input parm */
+    return 4;
+  }
 
 
 
 
-      param++;
-    }
+  param = 1;                      // start with the second parm (after the program name)
+  while (param < pgm_argc)
+  {
+    printf("Parameter %d is %s\n", param, pgm_argv[param]);
+    /* Parse the input parm */
+
+
+
+
+    param++;
+  }
+
+
 
   if (param > 1)
-    return 0;
+    return 0;             // normal return
   else
-    return 1;
-} /* Get_runtime_parms */
+    return 1;             // return, code indicates no parameters
+
+  printf("Searching for configuration file: %s", cfg_input);
+
+
+
+
+  printf("\n\n");                                               // finish line with line feed(s) 
+} /* set_runtime_parms */
  
 /* ----------------------------------------------------------------------------- */
-/* extract_parm: Extract and parse the input parm                                */
-/*            (This doesn't include the required file name parm)                 */
+/* parse_parm: Extract and parse the input parm                                  */
+/*                                                                               */
 /* ----------------------------------------------------------------------------- */
-int extract_parm(int p_argc,char * p_argv[])
+int parse_parm(int p_argc, char * p_argv[])
 {
   char *ch;    /* char string pointer for loop */
   int i;       /* loop increment */
 
-  /* Look for the hyphenated parameters and parse them */
+  /* Look for a hyphenated parameters and parse it */
   if (strncmp( p_argv[1], "-", 1) == 0 )
   {
-    printf(" *** Input parm: <%s>\n", p_argv[1]);
+    printf(" *** Runtime parm: <%s>\n", p_argv[1]);
 
     // Set debug flags
 
@@ -377,4 +370,4 @@ int extract_parm(int p_argc,char * p_argv[])
   }
 
   return(0);
-} /*-- get_parm */
+} /*-- parse_parm */
