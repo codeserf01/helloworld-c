@@ -28,43 +28,62 @@
 #include <time.h>                           // Times and time strings
 #include <ctype.h>                          // For detecting specific character types
 
-/* Debugging flags with starting default values */
-int  debug_buf      = 0;                    // Flag: Do frequent debug/log file flushes
-int  debug_log      = 0;                    // Flag: Create a debug output file
-int  debug_verbose  = 0;                    // Flag: Produce verbose debug information
-int  debug_all      = 0;                    // Flag: Produce all available debug information
-int  debug_disp_rec = 0;                    // Flag: Display input record
-
 /* ----------------------------------------------------------------------------------------- 
    Default file names. May be updated via runtime parameters of values in a config file.
   ----------------------------------------------------------------------------------------- */
 char def_cfg_filename       [] = "cfg.txt\0";         // Default run-time configuration file name
-char def_log_filename       [] = "log.txt\0";         // Default output log file name - 'just the essentials'
-char def_verboselog_filename[] = "verbose_log.txt\0"; // Default log file name for verbose log data
-char def_output_filename    [] = "output.txt\0";      // Default output data
+char def_log_filename       [] = "log.txt\0";         // Default output log  name - 'just the essentials'
+char def_verboselog_filename[] = "verbose_log.txt\0"; // Default output file name for verbose log and debug output
+char def_out_filename       [] = "output.txt\0";      // Default output data
 
 // Default paths - the expected relative locations of the input files:
+// By default it's assumed that the program is being run from its 'bin' directory
 char def_path            [] = "./\0";                 // Default generic path for files
 char def_log_path        [] = "../log/\0";            // Default path to the pgm output log(s)
 char def_verboselog_path [] = "../log/\0";            // Default path to the pgm's verbose processing log file
-char def_data_path       [] = "../data/\0";           // Default path to the input data file location
-char def_output_path     [] = "../output/\0";         // Default path to the pgm output file(s)
-
-// Flags to indicate if the above files are actually opened. Default value is 'no'
-int  cfg_open        = 0;
-int  log_open        = 0;
-int  verboselog_open = 0;
-int  output_open     = 0;
+char def_in_data_path    [] = "../data/\0";           // Default path to the input data file location
+char def_out_path        [] = "../output/\0";         // Default path to the pgm output file(s)
 
 /* Derived file names at run-time. Set at run-time
    Default values will be inserted, using the program run-time name and the applicable default values (above)
    These are set when the applicable files are opened.
 */
-char pgm_name    [40];              // Program name minus leading non-alpha chars
-char cfg_input   [100];             // Runtime configuration file name
-char log_file    [100];             // Run-time processing log output file name
-char log_verbose [100];             // Run-time verbose debug log output file name
-char output_file [100];             // Standard program processing output file name
+char pgm_name        [40];              // Program name minus leading non-alpha chars
+
+// Files (in their final form) to work with 
+char cfg_file        [100];             // Runtime configuration file name
+char log_file        [100];             // Run-time processing log output file name
+char verboselog_file [100];             // Run-time verbose debug log output file name
+char out_file        [100];             // Standard program processing output file name
+
+// Flags to indicate if the above files are actually opened. Default value is 0 ('no')
+int  cfg_open        = 0;
+int  log_open        = 0;
+int  verboselog_open = 0;
+int  out_open        = 0;
+
+/* Debugging flags with starting default values */
+int  debug_buf       = 0;           // Perform frequent debug/log file flushes
+int  debug_log       = 0;           // Create a debug output file
+int  debug_verbose   = 0;           // Produce verbose debug information
+int  debug_all       = 0;           // Produce all available debug information
+int  debug_disp_rec  = 0;           // Display input record
+
+// Flags to indicate where these file names were set. This is important at startup
+// Valid values: 'd' - default
+//               'r' - set through run-time parameter
+//               'c' - set through configuration file setting
+char cfg_open_set         = 'd';    // Flag for cfg_open
+char log_open_set         = 'd';    // Flag for log_open
+char verboselog_open_set  = 'd';    // Flag for verbose_log_open
+char out_open_set         = 'd';    // Flag for out_open
+
+// Flags to indicate where these values were set. This is important at startup
+char debug_buf_set        = 'd';    // Flag for debug_buf
+char debug_log_set        = 'd';    // Flag for debug_log
+char debug_verbose_set    = 'd';    // Flag for debug_verbose
+char debug_all_set        = 'd';    // Flag for debug_all
+char debug_disp_rec_set   = 'd';    // Flag for debug_disp_rec
 
 /* Program name as determined at run-time. */
 char input_file_namebase [100];     // 1st part of input file name (path)
@@ -88,7 +107,7 @@ char    gen_datetimestr   [50];     // generic date/time string - tmp/working st
 
 /* Function profiles */
 int get_runtime_parms(int, char * []);    // Read the runtime parms
-int extract_parm     (int, char * []);    // Extract and edit an individual parm
+int extract_param     (int, char  []);    // Extract and edit an individual parameter from a string
 int get_parm         (int, char * []);    // Parse a command-line parameter
 
 /*------------------------------------------------------------------------------------------------------------------------------------*/
@@ -178,7 +197,7 @@ int main(int argc, char *argv[])
     }
 
   // Runtime parms set. Now look for a configuration file.   
-  printf("Searching for configuration file: %s\n\n", cfg_input);
+  printf("Searching for configuration file: %s\n\n", cfg_file);
 
 
   /* --------------   Do the config file thing... ----------------- */
@@ -222,10 +241,10 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
   int param  = 1;            // parameter number - start with the 2nd parm - after the program name
   
   /* First, initialize default settings to NULL */
-  memset(cfg_input,   '\0', sizeof(cfg_input));    
-  memset(log_file,    '\0', sizeof(log_file));    
-  memset(log_verbose, '\0', sizeof(log_verbose));    
-  memset(output_file, '\0', sizeof(output_file));    
+  memset(cfg_file,        '\0', sizeof(cfg_file));    
+  memset(log_file,        '\0', sizeof(log_file));    
+  memset(verboselog_file, '\0', sizeof(verboselog_file));    
+  memset(out_file,        '\0', sizeof(out_file));    
 
   /* -- First, set set the hard-coded default values */ 
 
@@ -235,9 +254,9 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
   //                     The input data file - if any - is found in the 'data ' subdirectory
   //                     The program output file(s) - if any - will be written out to the 'output' subdirectory
 
-  sprintf(cfg_input,   "%s%s_%s", def_path,            pgm_name, def_cfg_filename);         // Set default config file name
-  sprintf(log_file,    "%s%s_%s", def_log_path,        pgm_name, def_log_filename);         // Set default pgm log file location
-  sprintf(log_verbose, "%s%s_%s", def_verboselog_path, pgm_name, def_verboselog_filename);  // Set default pgm's verbose log location
+  sprintf(cfg_file,        "%s%s_%s",  def_path,           pgm_name, def_cfg_filename);         // Set default config file name
+  sprintf(log_file,        "%s%s_%s", def_log_path,        pgm_name, def_log_filename);         // Set default pgm log file location
+  sprintf(verboselog_file, "%s%s_%s", def_verboselog_path, pgm_name, def_verboselog_filename);  // Set default pgm's verbose log location
   
   // Commented out but not forgotten: No Default files - we don't know the names of the input or output files at this time.
   // sprintf(input_file,  "%s%s_%s", def_data_path,       pgm_name, def_input_filename);  // Set default pgm's regular log location
@@ -252,8 +271,8 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
   if (pgm_argc == 1)                      // will always have at least 1 parm: the program name
   {
     // printf("*** No command line (run time) parameters found ***\n");
-    return 1;                            // That was easy: No further command line parms; return with 1
-  }
+    return 1;                             // That was easy: No further command line parms; return with 1
+  } 
   else
   {
     /* Parse out the runtime parameters */
@@ -268,25 +287,28 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
     {
       printf("Number of parameters: %d\n", pgm_argc -1);       // Show the number of parameters, excluding parm 0 (program name)
       /*  Parse each input parameter  */
-      param = 1;                                // Intialize to read the first parameter after pgm name
-      while ( param < pgm_argc )                // Go up the chain of parms and make sure you're not counting past the array
+      param = 1;                           // Intialize to read the first parameter after pgm name
+      while ( param < pgm_argc )           // Go up the chain of parms and make sure you're not counting past the array
       {
-        rc = get_parm(param,  pgm_argv);        // Get the next command line parm 
+        rc = extract_param(param,  pgm_argv[param]);   // Get the next command line parm 
+
+        // rc = get_parm(param,  pgm_argv);            // Get the next command line parm 
         if (rc != 0)
         {
           if (ret_rc < rc) ret_rc = rc;         // Collect the highest return code encountered in the loop
           if (rc > 4)                           // Very bad return code
           {
-              // printf("Parameter %d, Unusual: Return code: %d, Parameter: <%s>\n", param, rc, pgm_argv[param]);
-              ret_rc = rc;
-            
-              return ret_rc;
+            // printf("Parameter %d, Unusual: Return code: %d, Parameter: <%s>\n", param, rc, pgm_argv[param]);
+
+            return ret_rc;
           }
           else
           {
-              // bad return code 
-
-              printf("Parameter %d is invalid (ignored): <%s>, Return code: %d.\n", param, pgm_argv[param], rc);
+            // Minor return code. Not enough to halt the program
+            // printf("Parameter %d is invalid (ignored): <%s>, Return code: %d.\n", param, pgm_argv[param], rc);
+            // 
+            
+            ;                                  // Do nothing, continue
           }
         }
         else
@@ -303,24 +325,315 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
 
   return 0;
 } /* get_runtime_parms */
- 
+
+/* -----------------------------------------------------------------------------
+   extract_param
+   Extract and parse the parameter string from the text passed to this function
+   This function will set the program's default hard-coded runtime values and is
+   intended to read both run-time parameters and configuration file settings.
+
+   As such, run-time parms take precidence over config file settings.
+   Config file settings will not overwrite any values set by runtime parameters.
+
+   This function is called for both runtime input parameter(s) and the 
+   configuration file parameter strings.
+   -----------------------------------------------------------------------------*/
+int extract_param(int p_num, char p_str[])
+{
+  int rc = 0;
+
+  // char *ch;                      /* char string pointer for loop */
+  // int i;                         /* loop increment               */
+
+
+  printf(" Parameter %d: <%s>", p_num, p_str);             // Debug: Display the parm you're going to parse
+  /* -------------------------------------------------------------------------
+     Parse out the individual program parameter. These parms may be entered 
+     at the command line in any order. Badly entered or invalid parms will be
+     flagged/displayed and ignored.
+
+     Most values can be specified as a cmd-line parameter or config file entry
+     The command line parameter will always take precedence - the config file entry, 
+     if present, will be ignored.
+
+     'set' flags are defaulted to 'd' and will be set to a new value only once.
+     If there is a secondary value either as a cmd-line parm or in the config file
+     it will be ignored.
+     ------------------------------------------------------------------------- */
+
+  /* -------------------------------------------------------------------------
+     First get any file name(s) specified as a cmd-line parm
+     ------------------------------------------------------------------------- */
+
+  // Configuration file name - parm '-c=' or -C='
+  // Logicaly, this is the only place you'll find an alternative config file name 
+  // specified because, well, it's the configuiration file name that you're looking for. 
+  // -----------------------------------------------------------------------------------
+  if ( (strncmp( p_str,  "-c=", 3) == 0 ) || (strncmp( p_str, "-C=", 3) == 0 )  ||
+        (strncmp( p_str, "/c=", 3) == 0 ) || (strncmp( p_str, "/C=", 3) == 0 )   )
+  {
+    // Look for a run-time configuration file name parameter
+    if (cfg_open_set == 'd')                             // If this value hasn't yet been specified
+    {
+      memset(cfg_file, '\0', sizeof(cfg_file));          // prep - NULL fully NULL out string 
+      // If the config file name is fully qualified (ie. with a path prefix) then use it as-is,
+      // else prefix the file name with the default qualifying directory
+      if (p_str[3] == '.' ||  p_str[3] == '/')           // If there is a path prefix to the name
+      {
+        strcat(cfg_file, p_str+3);                       // Use the file name as-is
+        printf(" Configuration file name: <%s>\n",cfg_file);
+      }
+      else        
+      { 
+        strcat(cfg_file, def_path);                      // prefix the file name with the default path
+        strcat(cfg_file, p_str+3);                       // add the file name
+        printf(" Configuration file name (qualified): <%s>\n",cfg_file);
+      }
+        cfg_open_set = 'r';                              // Indicate that this default value is now overwritten
+    } /* cfg_open_set */
+    else                                                 // Already set - ignore
+    { ; }                                                // Do nothing
+  }  // if ( (strncmp( p_str, "-c=", 3) == 0 ) ...
+
+  // Program output log file name - prarmeter '-l=' or '-L=' ..
+  else if ( (strncmp( p_str, "-l=", 3) == 0 ) || (strncmp( p_str, "-L=", 3) == 0 )  ||
+            (strncmp( p_str, "/l=", 3) == 0 ) || (strncmp( p_str, "/L=", 3) == 0 )   )
+  {
+    if (log_open_set == 'd')                             // If this value hasn't yet been specified
+    {
+      memset(log_file, '\0', sizeof(log_file));          // prep - NULL fully NULL out string 
+      // If the log file name is fully qualified (ie. with a path prefix) then use it as-is,
+      // else prefix the file name with the default qualifying directory
+      if (p_str[3] == '.' ||  p_str[3] == '/')           // If there is a path prefix to the name
+      {
+        strcat(log_file, p_str+3);                       // Use the file name as-is
+        printf(" Processing log file name: <%s>\n",log_file);
+      }
+      else
+      {
+        strcat(log_file, def_log_path);                  // use the default path prefix
+        strcat(log_file, p_str+3);                       // add the config file name
+        printf(" Processing log file name (qualified): <%s>\n",log_file);
+      }
+        log_open_set = 'r';                              // Indicate that this default value is now overwritten
+    } /* log_open_set */
+    else                                                 // Already set - ignore
+    { ; }                                                // Do nothing
+  } // if ( (strncmp( p_str, "-l=", 3) == 0 ) ...
+  
+  // Alternate verbose/debug file name - parameter '-v=' or '-V='..
+  else if ( (strncmp( p_str, "-v=", 3) == 0 ) || (strncmp( p_str, "-V=", 3) == 0 )  ||
+            (strncmp( p_str, "/v=", 3) == 0 ) || (strncmp( p_str, "/V=", 3) == 0 )   )
+  {
+    if (verboselog_open_set == 'd')                      // If this value hasn't yet been specified
+    {
+      memset(verboselog_file, '\0', sizeof(verboselog_file));  // prep - NULL fully NULL out string 
+      // If the debug log file name is fully qualified (ie. with a path prefix) then use it as-is,
+      // else prefix the file name with the default qualifying directory
+      if (p_str[3] == '.' ||  p_str[3] == '/')           // If there is a path prefix to te name
+      {
+        strcat(verboselog_file, p_str+3);                // Use the file name as-is
+        printf(" Verbose log file name: <%s>\n",verboselog_file);
+      }
+      else        
+      { 
+        strcat(verboselog_file, def_log_path);           // use the default path prefix
+        strcat(verboselog_file, p_str+3);                // add the config file name
+        printf(" Verbose log file name (qualified): <%s>\n",verboselog_file);
+      }
+        verboselog_open_set = 'r';                       // Indicate that this default value is now overwritten
+    } /* verboselog_open_set */
+    else                                                 // Already set - ignore
+    { ; }                                                // Do nothing
+  } // if ( (strncmp( p_str, "-v=", 3) == 0 ) ...
+
+  // Alternate processing output file name
+  else if ( (strncmp( p_str, "-o=", 3) == 0 ) || (strncmp( p_str, "-O=", 3) == 0 )  ||
+            (strncmp( p_str, "/o=", 3) == 0 ) || (strncmp( p_str, "/O=", 3) == 0 )   )
+  {
+    if (out_open_set == 'd')                             // If this value hasn't yet been specified
+    {
+      memset(out_file, '\0', sizeof(out_file));          // prep - NULL fully NULL out string 
+      // If the program ouput file name is fully qualified (ie. with a path prefix) then use it as-is,
+      // else prefix the file name with the default qualifying directory
+      if (p_str[3] == '.' ||  p_str[3] == '/')           // If there is a path prefix to te name
+      {
+        strcat(out_file, p_str+3);                       // Use the file name as-is
+        printf(" Output file name: <%s>\n",out_file);
+      }
+      else        
+      { 
+        strcat(out_file, def_out_path);                  // use the default path prefix
+        strcat(out_file, p_str+3);                       // add the config file name
+        printf(" Output file name (qualified): <%s>\n",out_file);
+      }
+        out_open_set = 'r';                              // Indicate that this default value is now overwritten
+    } /* out_open_set */
+    else                                                 // Already set - ignore
+    { ; }                                                // Do nothing
+  }  // if ( (strncmp( p_str, "-o=", 3) == 0 ) ...
+
+  /* Processing flags output processing flag to govern what and how much to print/display */ 
+
+/*
+// Debugging flags with starting default values  (ie. 0/'no')
+int  debug_buf       = 0;           // Perform frequent debug/log file flushes
+int  debug_log       = 0;           // Create a debug output file
+int  debug_verbose   = 0;           // Produce verbose debug information
+int  debug_all       = 0;           // Produce all available debug information
+int  debug_disp_rec  = 0;           // Display input record
+
+// Flags to indicate where these values were set. This is important at startup
+char debug_buf_set     = 'd';       // Flag: Do frequent debug/log file flushes
+char debug_log_set     = 'd';       // Flag: Create a debug output file
+char debug_verbose_set = 'd';       // Flag: Produce verbose debug information
+char debug_all_set     = 'd';       // Flag: Produce all available debug information
+char debug_disp_rec_set= 'd';       // Flag: Display input record
+
+*/
+
+
+  else if ( (strncmp( p_str, "-d=", 3) == 0 ) || (strncmp( p_str, "-D=", 3) == 0 )  ||
+            (strncmp( p_str, "/d=", 3) == 0 ) || (strncmp( p_str, "/D=", 3) == 0 )   )
+  {
+/*
+    if (out_open_set == 'd')                             // If this value hasn't yet been specified
+    {
+      memset(out_file, '\0', sizeof(out_file));          // prep - NULL fully NULL out string 
+      // If the program ouput file name is fully qualified (ie. with a path prefix) then use it as-is,
+      // else prefix the file name with the default qualifying directory
+      if (p_str[3] == '.' ||  p_str[3] == '/')           // If there is a path prefix to te name
+      {
+        strcat(out_file, p_str+3);                       // Use the file name as-is
+        printf(" Output file name: <%s>\n",out_file);
+      }
+      else        
+      { 
+        strcat(out_file, def_out_path);                  // use the default path prefix
+        strcat(out_file, p_str+3);                       // add the config file name
+        printf(" Output file name (qualified): <%s>\n",out_file);
+      }
+        out_open_set = 'r';                              // Indicate that this default value is now overwritten
+    } // out_open_set 
+    else                                                 // Already set - ignore
+    { ; }                                                // Do nothing
+    }  // if ( (strncmp( p_str, "-o=", 3) == 0 ) ...
+*/  
+  }
+  // After all this checking, determine that this is an invalid flag/parameter and reject it
+  else // final case - (no 'if'...) flag this as an invalid parameter
+  {
+    // Invalid parameter type. It was not prefixed with '-' or '/' 
+    // Return with a return code 4
+    // This will allow for extracting & validating further parameters
+    // Highlight the bad parm and ignore/skip 
+    printf(" Parameter %d is invalid (ignored): <%s>.\n", p_num, p_str);
+  
+    return(4);
+  } /* if ( (strncmp( p_str, "-", 1) == 0 )  ||...  */ 
+
+
+
+
+
+  return  rc;
+} /* extract_param */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* ----------------------------------------------------------------------------- */
 /* get_parm: Extract and parse the command line input parameters                 */
 /*                                                                               */
 /* ----------------------------------------------------------------------------- */
 int get_parm(int parm_num, char * p_argv[])
+
 {
-  char *ch;                      /* char string pointer for loop */
-  int i;                         /* loop increment               */
+  //char *ch;                      /* char string pointer for loop */
+  //int i;                         /* loop increment               */
 
-  // printf(" +++ Parameter %d: <%s>\n", parm_num, p_argv[parm_num]);
-
+  printf(" Parameter %d: <%s>\n", parm_num, p_argv[parm_num]);
   /* Look for a hyphenated parameter and parse it */
   if  ( (strncmp( p_argv[parm_num], "-", 1) == 0 )  ||
         (strncmp( p_argv[parm_num], "/", 1) == 0 )   )
   {
-    printf(" Parameter %d: <%s>\n", parm_num, p_argv[parm_num]);
+    ;
+    // Look for a run-time configuration file name parameter
+ /*
+    else if ( (strncmp( p_argv[param_num], "-c=", 2) == 0 ) || (strncmp( p_argv[param_num], "-C=", 2) == 0 )  )
+    {
+      memset(input_file_name,     '\0',sizeof(input_file_name     ));     // Initialize
+      memset(input_file_namebase, '\0',sizeof(input_file_namebase ));
+      memset(full_input_file_name,'\0',sizeof(full_input_file_name));
 
+      // Get the base name of the input file name -  everything except the last part
+      ch = p_argv[1]+3;
+      for (i=0; i < strlen(ch); i++)
+      {
+        if (ch[i] != '.')
+          input_file_namebase[i] = ch[i];
+        else
+          if ( (strcmp(&ch[i],".txt") == 0) || (strcmp(&ch[i],".dat") == 0) )
+          {
+            break;
+          }
+          else
+          {
+            input_file_namebase[i] = ch[i];
+          }
+      }
+      // printf(" base name: <%s>\n",input_file_basename);
+
+      // Construct the fully-qualified input file name
+      strcpy(full_input_file_name,def_data_path);
+      strcat(input_file_name,p_argv[1]+3);
+      strcat(full_input_file_name,p_argv[1]+3);
+      
+      printf(" *** Input file: %s\n",input_file_name);
+      printf(" *** Full input file: %s\n",full_input_file_name);
+    }
+  }
 
 
     // Set debug flags
@@ -328,21 +641,20 @@ int get_parm(int parm_num, char * p_argv[])
 
 
     return 0;
+*/
 
 
-
-
-
+/*
     if ( (strncmp( p_argv[1], "-c=", 3) == 0 ) || (strncmp( p_argv[1], "-C=", 3) == 0 )  )
     {
       // Activate/de-activate frequent file buffer flushes
       if      ( (strncmp( (p_argv[1] + 3), "B-", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "b-", 2) == 0 )  )
       {
         // Switch OFF frequent buffer flushes
-        debug_buf = 0;       /* Produce program debug trace information */
+        debug_buf = 0;       // Produce program debug trace information 
         printf(" *** Debug: Switch OFF frequent buffer flushes ****\n");
       }
-      /*
+    
       else if ( (strncmp( (p_argv[1] + 3), "B+", 2) == 0 ) || (strncmp( (p_argv[1] + 3), "b+", 2) == 0 )  )
       {
         // Switch ON frequent buffer flushes
@@ -358,7 +670,7 @@ int get_parm(int parm_num, char * p_argv[])
         printf(" *** Debug: Switch OFF displaying rows before INSERT/UPDATE ****\n");
       }
 
-      */
+      
 
       else
       {
@@ -367,7 +679,8 @@ int get_parm(int parm_num, char * p_argv[])
       }
     }
 
-    /* Parse input file name */
+    // Parse input file name 
+
     else if ( (strncmp( p_argv[1], "-i=", 3) == 0 ) || (strncmp( p_argv[1], "-I=", 3) == 0 )  )
     {
       memset(input_file_name,'\0',sizeof(input_file_name));
@@ -396,10 +709,10 @@ int get_parm(int parm_num, char * p_argv[])
       strcpy(full_input_file_name,def_data_path);
       strcat(input_file_name,p_argv[1]+3);
       strcat(full_input_file_name,p_argv[1]+3);
-      /*
-      printf(" *** Input file: %s\n",input_file_name);
-      printf(" *** Full input file: %s\n",full_input_file_name);
-      */
+
+      //printf(" *** Input file: %s\n",input_file_name);
+      //printf(" *** Full input file: %s\n",full_input_file_name);
+
     }
     else
     {
@@ -407,24 +720,11 @@ int get_parm(int parm_num, char * p_argv[])
       printf(" =+=+= Invalid switch type: %s =+=+=\n",p_argv[1]);
       return(4);
     }
-    /*
-    else
-     // Code any extra flags here.
-     ** By default, skip any unknown flags
-    */
+ 
+
+  } // if  ( (strncmp( p_argv[parm_num], "-", 1) == 0 )... 
+   */
 
   }
-  else
-  {
-    // Invalid parameter type. It was not prefixed with '-' or '/' 
-    // Return with a return code 4
-    // This will allow for extracting & validating further parameters
-
-    // printf("What is this?? ");
-    // printf(" ===== Invalid/unknown switch type: %s =====\n",p_argv[parm_num]);
-    return(4);
-  }
-
-
   return(0);
 } /*-- get_parm */
