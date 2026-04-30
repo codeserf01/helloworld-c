@@ -181,29 +181,38 @@ int main(int argc, char *argv[])
     }
     else
     {
-      // Runtime parameters successfully read in
-      //printf("++++ runtime parameters read in.++++\n");
-      ;
+      ;                                             // Do nothing - it all worked
     }
 
-  // Runtime parms set. Now look for a configuration file.   
+  // Runtime parms set. Now, look for a configuration file.   
   printf("Searching for configuration file: %s\n\n", cfg_file);
 
-
   /* --------------   Do the config file thing... ----------------- */
+  /* Look for the configuration file for this program run.
+  * Use the run-time parameter for this, if it is present. Otherwise use the default name.
+  * If a configuration file is found, open it and process its contents for final configuration 
+  * If there is no configuration file to be found, use any default values present.
+  */
 
 
-/*
-     Open the program's log file using the resolved file name.
+
+
+
+  /* --------------   Do the log file thing... ----------------- */
+  /*
+     Open the program's log file using the resolved file name, if there is one.
      Open the program's detailed log file, if wanted, also using the resolved file name.
      Set any other runtime input parameters.
      Note: pgm_name is already set (above)...
-*/
+  */
 
 
+
+
+  
+  /* --------------   Do more config stuff... ----------------- */
   /* Now get the specific processing environment(s) vars that this program needs to work in,
-     such as
-     MariaDB, MYSql, etc... database vars, required GUI-based environmental settings, etc.
+     such as MariaDB, MYSql, etc... database vars, required GUI-based environmental settings, etc.
      But, don't forget the immediate stuff such as system time and date, file names, etc....
   */
 
@@ -307,7 +316,7 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
     }  // else
   } // else
  
-  printf("+++ Done reading parameters ++++\n"); 
+  printf("+++ Done reading runtime parameters ++++\n"); 
 
   return 0;
 } /* get_runtime_parms */
@@ -334,7 +343,8 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
 *  If it does, then the parameter value parsing needs to accomodate this extra character
 *
 *  ALSO:
-*  Check that this parameter string isn't empty nor unusually long
+*  Check that this parameter string isn't empty (ignore LONG parameter strings for now; 
+*  they would be invalid anyways)
 *  
 * --------------------------------------------------------------------------------*/
 int extract_param(int p_num, char p_str[])
@@ -392,7 +402,6 @@ int extract_param(int p_num, char p_str[])
   
     return(4);
   }
-  //-------------------------------------------------------------------------------------------------------------------
   /* -------------------------------------------------------------------------
      Parse out the individual program parameter. These parms may be entered 
      at the command line in any order. Badly entered or invalid parms will be
@@ -404,7 +413,7 @@ int extract_param(int p_num, char p_str[])
      ------------------------------------------------------------------------- */
 
   /* -------------------------------------------------------------------------
-     First, check for an applicable file name
+     First, check for applicable file names sets...
      ------------------------------------------------------------------------- */
   // Configuration file name - parm '-c' or -C' or '/c' or '/C'
   // Logicaly, this is the only place you'll find an alternative config file name 
@@ -549,25 +558,26 @@ int extract_param(int p_num, char p_str[])
   else if ( (p_str[1] == 'd') || (p_str[1] == 'D') )
   {
     // Here we're looking at three possible settings, all using the '-D' switch
-    // So '-D'...  can be used more than once but each setting should be set only once
+    // So '-D'...  can be used more than once but each specific setting should be done only once
     if ( (strncmp(p_str, "-d", 2) == 0) || (strncmp(p_str, "-D", 2) == 0) )   
     {
-      if (in_open_set == ' ')                              // If this value hasn't yet been specified
-        printf(" **Debug Level previously set - Parameter/configuration setting '%s' skipped.**\n",p_str);
-      else
-      {
         // Determine the debug level being requested
         /* Debugging flags with starting default values (Default - 0 (ie. 'no')
            int  debug_flush        = 0;      // Perform frequent debug/log file buffer flushes
            int  debug_log          = 0;      // Create a debug file and set verbosity ('1'- basic, '2'- detailed, '3'- All details available)
         */
-        //      if (strlen(p_str) > p_str_offset)            // check if there is anything beyond this switch value
-        // p_str_offset
-
         if ( (p_str[p_str_offset] == 'b') || (p_str[p_str_offset] == 'B') )
         {
+          if (debug_flush != 0)      // If this flag has already been set
+          {
+            // Outout warning message: Flag already set and this one ignored
+            printf(" **Frequent debug file flushes already set. Parameter/configuration setting '%s' skipped.**\n",p_str);
+          }
+          else
+          {
             debug_flush = 1;                     // Debug: Do frequent output buffer flushes
-            printf(" **Debug: Frequent debug file purges set: '%s'\n",p_str);
+            printf(" **Debug: Frequent debug file flushes set: '%s'\n",p_str);
+          }
         }
         else if ( (p_str[p_str_offset] == 'l') || (p_str[p_str_offset] == 'L') )      // Debug level setting
         {  
@@ -607,7 +617,6 @@ int extract_param(int p_num, char p_str[])
             }  // if (strlen(p_str+p_str_offset) > 1)
           }  // else
         }  // else if ( (p_str[p_str_offset] == 'l') ...
-      }  // else
     }  // if ( (strncmp(p_str, "-d", 2) == 0) ...
   }  // if ( (strncmp( p_str, "-o=", 2) == 0 ) ...
 
