@@ -64,36 +64,37 @@ int  debuglog_open = 0;
 int  in_open       = 0;
 int  out_open      = 0;
 
-// Flags to indicate where these file names were set. This is important at startup
-// To show that it was set and where. This will enforce the practice that it is set only once.
+// Flags to indicate where file names were set. This is important at startup
+// Show that it was set and where. This will help enforce the practice that it is set only once.
 // Valid values: ' ' - Not set at all
 //               'd' - default
 //               'r' - set through run-time parameter
 //               'c' - set through configuration file setting
-char cfg_open_set       = 'd';    // Flag for cfg_open
-char log_open_set       = 'd';    // Flag for log_open
-char debuglog_open_set  = 'd';    // Flag for debug_log_open
-char in_open_set        = ' ';    // Flag for in_open  - not set because it was not defined
-char out_open_set       = ' ';    // Flag for out_open - not set because it was not defined
+//               ' ' - no default setting 
+char cfg_open_set       = 'd';    // Flag: Indicate the configuration file name is set
+char log_open_set       = 'd';    // Flag: Indicate standard program output log name is set
+char debuglog_open_set  = 'd';    // Flag: Indicate the debug file name is set
+char in_open_set        = ' ';    // Flag: Indicate the data input file name is set - not pre-defined by default
+char out_open_set       = ' ';    // Flag: Indicate the data output file name is set - not pre-defined by default
 
 /* Debugging flags with starting default values (Default - 0 (ie. 'no'/'none')*/
-int  debug_flush        = 0;      // Perform frequent debug/log file buffer flushes
-int  debug_log          = 0;      // Create a debug file and set verbosity ('1'- basic, '2'- detailed, '3'- All details available)
+int  debug_flush        = 0;      // Flag: Perform frequent debug/log file buffer flushes (0 - no-rapid flushes, 1 - frequent buffer flushes)
+int  debug_log          = 0;      // Flag: Create a debug file and set its verbosity (1- basic, 2- detailed, 3- All details available)
 
 /* Time/date values in a couple of formats.
-   Hint: Get some alternative time/date ideas from the personal program timeDate.c  
    Note: These fields/values are defined globally in case they are used beyond the main() function.
+   Hint: You'll find some alternative time/date ideas from the personal program timeDate.c  
 */
-time_t  system_Time;                // Local copy of the system raw time at program start
-struct  tm loc_start_Time;          // Local formatted copy of the derived local time
-struct  tm UTC_start_Time;          // Local formatted copy of the derived GMT/UTC time structure
-char    loc_Time_str   [25];        // char version of loc_Time
-char    UTC_Time_str   [25];        // char version of UTC_Time
-char    gen_datetimestr[50];        // Char version - tmp date/time string, formatted and used as needed
+time_t  system_Time;              // Local copy of the system raw time at program start
+struct  tm loc_start_Time;        // Local formatted copy of the derived local time
+struct  tm UTC_start_Time;        // Local formatted copy of the derived GMT/UTC time structure
+char    loc_Time_str   [25];      // char version of loc_Time
+char    UTC_Time_str   [25];      // char version of UTC_Time
+char    gen_datetimestr[50];      // Char version - tmp date/time string, formatted and used as needed
 
-char    loc_start_Time_str[25];     // local date & time string
-char    UTC_start_Time_str[25];     // GMT/UTC date & time string
-char    gen_datetimestr   [50];     // generic date/time string - tmp/working string
+char    loc_start_Time_str[25];   // local date & time string
+char    UTC_start_Time_str[25];   // GMT/UTC date & time string
+char    gen_datetimestr   [50];   // generic date/time string - tmp/working string
 
 /* Function profiles */
 int get_runtime_parms(int, char * []);    // Read the runtime parms
@@ -315,19 +316,18 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
 * extract_param
 *  Extract and parse the parameter string from the text passed to this function.
 *  This function will overwrite the program's default (hard-coded) values and set 
-*  the appropriate flag to indicate an update.
-*  The update flag is intended to prevent successive updates, regardless of source.
+*  the appropriate flag to indicate an update. This update process is intended 
+*  to prevent serial updates, regardless of source.
 *  This function is intended to be called for both command line parameters and 
 *  configuration file input.
 *
-*  Note: Some error messages will only go to standard output because the log 
-*        and debug files (if any) have not yet been opened.
+*  Note: The error messages will only go to standard output because the log and 
+*        debug files (if any) have not yet been opened at this stage of program startup.
 *
-*  Since we're being anal and inevitably over-engineering this basic skeleton program....
+*  Since we're being anal and massively over-engineering this basic skeleton program....
 *
-*  Parameters are usually expected to be in the form of '/x...' or '-x...'
-*  and maybe also with a trailing '=' (ie, '/x=' or '-x=')
-*  Switches are defined as being a single char, MAYBE with a trailing '='
+*  Parameters/switches are usually expected to be in the form of '/x...' or '-x...'
+*  (ie. single character and maybe also with a trailing '=' (ie, '/x=' or '-x=')
 *  followed by the intended value for that switch
 *
 *  So check if the parameter includes a '=' character in the third space (ie. '-c=')
@@ -341,12 +341,11 @@ int extract_param(int p_num, char p_str[])
 {
   int rc = 0;
   int p_str_offset = 0;          // Offset to accomodate varying parameter flags
-  // char *ch;                      // char string pointer for loop
-  // int i;                         // loop increment              
 
   printf(" Parameter %d: <%s>", p_num, p_str);       // Debug: Display the parm you're going to parse
 
   // Check if this parameter string is long enough to actually potentially hold a value
+  // I won't be checking for 'too-long' parameters. Let's assume at this time that this won't happen.
   
   if (strlen(p_str) > 2)                      // if the parameter string is a proper minimum string length (without a '=' char)
   {
@@ -397,14 +396,15 @@ int extract_param(int p_num, char p_str[])
   /* -------------------------------------------------------------------------
      Parse out the individual program parameter. These parms may be entered 
      at the command line in any order. Badly entered or invalid parms will be
-     flagged/displayed and ignored.
+     flagged/displayed and skipped.
 
      'set' flags are hard-coded to 'd' and will be overwritten to a new value only once.
-     If a duplicate/repeated parameter is found, the flag will prevent anopther update.
+     If a duplicate/repeated parameter is found, the flag will prevent another update
+     and that parmeter skipped.
      ------------------------------------------------------------------------- */
 
   /* -------------------------------------------------------------------------
-     First, get any applicable file name
+     First, check for an applicable file name
      ------------------------------------------------------------------------- */
   // Configuration file name - parm '-c' or -C' or '/c' or '/C'
   // Logicaly, this is the only place you'll find an alternative config file name 
@@ -491,7 +491,7 @@ int extract_param(int p_num, char p_str[])
     }
   } //   else if ( (p_str[1] == 'v') || (p_str[1] == 'V') )
 
-  // Define an data output file name
+  // Define a data output file name
   else if ( (p_str[1] == 'o') || (p_str[1] == 'O') )
   {
     if (out_open_set == ' ')                             // If this value hasn't yet been specified
@@ -549,28 +549,34 @@ int extract_param(int p_num, char p_str[])
   else if ( (p_str[1] == 'd') || (p_str[1] == 'D') )
   {
     // Here we're looking at three possible settings, all using the '-D' switch
-    // So '-D'...  can be used up to three times but still each setting should be set only once
-    if ( (strncmp( p_str, "-d", 2) == 0 ) || (strncmp( p_str, "-D", 2) == 0 ) )   
+    // So '-D'...  can be used more than once but each setting should be set only once
+    if ( (strncmp(p_str, "-d", 2) == 0) || (strncmp(p_str, "-D", 2) == 0) )   
     {
       if (in_open_set == ' ')                              // If this value hasn't yet been specified
         printf(" **Debug Level previously set - Parameter/configuration setting '%s' skipped.**\n",p_str);
       else
-        // Determine trhe debug level being requested
-        {
-          /* Debugging flags with starting default values (Default - 0 (ie. 'no')
-             int  debug_flush        = 0;      // Perform frequent debug/log file buffer flushes
-             int  debug_log          = 0;      // Create a debug file and set verbosity ('1'- basic, '2'- detailed, '3'- All details available)
-          */
-          //      if (strlen(p_str) > p_str_offset)            // check if there is anything beyond this switch value
-          // p_str_offset
+      {
+        // Determine the debug level being requested
+        /* Debugging flags with starting default values (Default - 0 (ie. 'no')
+           int  debug_flush        = 0;      // Perform frequent debug/log file buffer flushes
+           int  debug_log          = 0;      // Create a debug file and set verbosity ('1'- basic, '2'- detailed, '3'- All details available)
+        */
+        //      if (strlen(p_str) > p_str_offset)            // check if there is anything beyond this switch value
+        // p_str_offset
 
-          if ( (p_str[p_str_offset] == 'b') || (p_str[p_str_offset] == 'B') )
-          {
+        if ( (p_str[p_str_offset] == 'b') || (p_str[p_str_offset] == 'B') )
+        {
             debug_flush = 1;                     // Debug: Do frequent output buffer flushes
             printf(" **Debug: Frequent debug file purges set: '%s'\n",p_str);
+        }
+        else if ( (p_str[p_str_offset] == 'l') || (p_str[p_str_offset] == 'L') )      // Debug level setting
+        {  
+          if (debug_log != 0)
+          {
+            printf(" **Debug level already set. Parameter/configuration setting '%s' skipped.**\n",p_str);
           }
-          else if ( (p_str[p_str_offset] == 'l') || (p_str[p_str_offset] == 'L') )      // Debug level setting
-          {  
+          else
+          {
             // Determine debug level: '1' - basic,
             //                        '2' - more detailed, 
             //                        '3' - All details available
@@ -598,10 +604,11 @@ int extract_param(int p_num, char p_str[])
               }
               else
                 printf(" **Unrecognized Debug Level requested - Parameter/configuration setting '%s' skipped.**\n",p_str);
-            }
-          }
-        }
-    }
+            }  // if (strlen(p_str+p_str_offset) > 1)
+          }  // else
+        }  // else if ( (p_str[p_str_offset] == 'l') ...
+      }  // else
+    }  // if ( (strncmp(p_str, "-d", 2) == 0) ...
   }  // if ( (strncmp( p_str, "-o=", 2) == 0 ) ...
 
   // After all this checking, determine that this is an invalid flag/parameter and reject it
