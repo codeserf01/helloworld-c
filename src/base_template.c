@@ -2,23 +2,23 @@
   base_template.c
     Author: Edward Morawski
 
-    This program is a C Language base template for future programs written my me.
-    It does some initial startup stuff that I like to have in my programs, such as:
+    This generic, overdeveloped, over-engineered runnable C-language program is a personal code template 
+    for future programs written my me. It does some basic startup stuff that I like to have in my programs,
+    such as:
     - Display some program startup information at run time
     - Open any input and output files, if any
-    - Set basic flags and text strings
-    - Any other basic setup and output that may be a good idea to have
+    - Set basic processing flags and text strings
+    - Any other generic basic setup work that might be a good idea to have.
     
-    As such, this is a runnable skeleton program that's meant to be a basis for some real stuff.
-    This is a 'live' file and will be modified as needed.
+    As such, this is a 'live' file and will be modified as needed.
 
     Note: Before you say anything about the code style/practices:
-        1) Yes, some of the following is 'old school' practice. It's my style. 
-        2) There are deliberately a LOT of comments. It's for code clarity and to remind myself months+ later
-        3) Since this is generic skeleton code for future programs:
-          a) There is code for both basic input and output files if needed.
-          b) There are NO default input and output file names defined. If you need to use input and/or output file(s),
-             names absolutely need to be added as parameters.
+        1) Yes, some of this code is definitely 'old school'. It's my style. 
+        2) There are, deliberately, a LOT of comments. It's for code clarity and to remind myself months+ later
+        3) Since this is a generic skeleton code example for a wide range of possible future programs:
+          a) There is code included for both basic input and output files if needed.
+          b) There are NO default input and output file names defined. If you need to use input 
+             and/or output file(s), names absolutely need to be added as parameters.
    ----------------------------------------------------------------------------------------------------------------------*/
 
 // Turn off the MS-oriented secure function call warnings. They are considered near-useless anyway
@@ -28,7 +28,15 @@
 #include <stdio.h>                          // Standard I/O functions
 #include <string.h>                         // String manipulation
 #include <time.h>                           // Times and time strings
-#include <ctype.h>                          // For detecting specific character types
+#include <ctype.h>                          // Detect specific character types
+
+// Default paths - the expected *relative* locations of pre-coded files:
+// By default it's assumed that the program is being run from its 'bin' directory
+char def_path             [] = "./\0";              // Default generic path for files
+char def_log_path         [] = "../log/\0";         // Default path - output log(s)
+char def_debuglog_path    [] = "../log/\0";         // Default path - verbose processing log file
+char def_in_path          [] = "../data/\0";        // Default path - input data file(s)
+char def_out_path         [] = "../output/\0";      // Default path - output file(s)
 
 /* ----------------------------------------------------------------------------------------- 
    Default file names. May be updated via runtime parameter(s) or a config file.
@@ -39,23 +47,19 @@ char def_debuglog_filename[] = "verbose_log.txt\0"; // Default output file name 
 char def_in_filename      [] = "input.txt\0";       // Default input data file
 char def_out_filename     [] = "output.txt\0";      // Default output data file
 
-// Default paths - the expected *relative* locations of pre-coded files:
-// By default it's assumed that the program is being run from its 'bin' directory
-char def_path             [] = "./\0";              // Default generic path for files
-char def_log_path         [] = "../log/\0";         // Default path - output log(s)
-char def_debuglog_path    [] = "../log/\0";         // Default path - verbose processing log file
-char def_in_path          [] = "../data/\0";        // Default path - input data file(s)
-char def_out_path         [] = "../output/\0";      // Default path - output file(s)
-
-// program name as derived at run-time.
-char pgm_name       [40];         // Program name minus leading non-alpha chars
-
 // Files (in their final form) to work with 
 char cfg_file      [100];         // Configuration file name
 char log_file      [100];         // Log output file name
 char debuglog_file [100];         // Verbose/Debug log output file name
 char in_file       [100];         // Program input file name
 char out_file      [100];         // Program output file name
+
+/*  File handles */
+FILE *cfg_file_ptr;               // Input - configuration file
+FILE *log_file_ptr;               // Log output file name
+FILE *debuglog_file_ptr;          // Verbose/Debug log output file name
+FILE *in_file_ptr;                // Program input file name
+FILE *out_file_ptr;               // Program output file name
 
 // Flags to indicate if the above files are actually opened. Default value is 0 (ie. 'no')
 int  cfg_open      = 0;
@@ -81,8 +85,11 @@ char out_open_set       = ' ';    // Flag: Indicate the data output file name is
 int  debug_flush        = 0;      // Flag: Perform frequent debug/log file buffer flushes (0 - no-rapid flushes, 1 - frequent buffer flushes)
 int  debug_log          = 0;      // Flag: Create a debug file and set its verbosity (1- basic, 2- detailed, 3- All details available)
 
+// program name as derived at run-time.
+char pgm_name       [40];         // Program name minus leading non-alpha chars
+
 /* Time/date values in a couple of formats.
-   Note: These fields/values are defined globally in case they are used beyond the main() function.
+   Note these fields/values are defined globally in case they are used beyond the main() function.
    Hint: You'll find some alternative time/date ideas from the personal program timeDate.c  
 */
 time_t  system_Time;              // Local copy of the system raw time at program start
@@ -98,8 +105,8 @@ char    gen_datetimestr   [50];   // generic date/time string - tmp/working stri
 
 /* Function profiles */
 int get_runtime_parms(int, char * []);    // Read the runtime parms
-int extract_param     (int, char  []);    // Extract and edit an individual parameter from a string
-int get_parm         (int, char * []);    // Parse a command-line parameter
+int extract_param    (int, char  [] );    // Extract and edit an individual parameter from a string
+int get_config_parms();                   // Get whatever configuration file parameters are present
 
 /*------------------------------------------------------------------------------------------------------------------------------------*/
 int main(int argc, char *argv[])
@@ -112,7 +119,7 @@ int main(int argc, char *argv[])
   // --------------------------------------------------------------------------------------------------------------------------------
 
   // --------------------------------------------------------------------------------------------------------------------------------
-  /* The following is kept as a nice idea if you want to get the time value(s) strictly within the calling function */
+  /* The following is kept aside as a nice idea if you want to get the time value(s) strictly within the function */
   // time_t   system_Time = time(NULL);                         // define and init a local copy of the system raw time 
   // struct  tm loc_Time  = *localtime(&system_Time);           // define and init a local copy of the derived local time
   // struct  tm UTC_Time  = *gmtime(&system_Time);              // define and init a local copy of the derived GMT/UTC time structure
@@ -157,15 +164,15 @@ int main(int argc, char *argv[])
   printf("\n\n");                                                    // Finish line with line feed(s) 
 
   /* -------------------------------------------------------------------------------------------------
-    Get all runtime parameters and then configuration file parameters to set the overall environment 
-    Default settings are hard-coded and are overwritten this way or through the configuration file settings.
+    Get all copmmand line parameters and then configuration file parameters to set the overall runtime environment.
+    Default settings are hard-coded and are overwritten this way.
     Process for setting defaults:
-      1) Program already has hard-coded default values, to be used if no override is found
-      2) Command line values override hard-coded values
-      3) Configuration file settings override default values not already set by the command line parms 
+      1) Program already has hard-coded default values, to be used if no override is found.
+      2) Command line values override hard-coded values.
+      3) Configuration file settings override default values not already set by the command line parms.
      -------------------------------------------------------------------------------------------------*/
  
-  ret = 0;                                          // Generic return code var
+  ret = 0;                                          // Initialize the generic return code var
   ret = get_runtime_parms(argc, argv);              // Get whatever runtime/command line parameters are present
   if (ret == 1)                                     // If no runtime command line parameters included
   {
@@ -177,15 +184,13 @@ int main(int argc, char *argv[])
     {
       printf("**** Bad/Invalid command line input - ending now. ****\n");
 
-      return ret;
+      return ret;                                   // Yes, quite the program
     }
     else
     {
       ;                                             // Do nothing - it all worked
     }
 
-  // Runtime parms set. Now, look for a configuration file.   
-  printf("Searching for configuration file: %s\n\n", cfg_file);
 
   /* --------------   Do the config file thing... ----------------- */
   /* Look for the configuration file for this program run.
@@ -194,6 +199,24 @@ int main(int argc, char *argv[])
   * If there is no configuration file to be found, use any default values present.
   */
 
+  ret = 0;                                          // Generic return code var
+  ret = get_config_parms();                         // Get whatever configuration file parameters are present
+  if (ret == 1)                                     // If no configuration file parameters found
+  {
+    ;                                               // Ignore - no parameters found
+    // printf("*** No command line parameters. \n");   // Indicate that there were no runtime parms found.
+  }
+  else
+    if (ret > 3)                                    // Problem with configuration file input - ending program now.
+    {
+      printf("**** Bad/Invalid configuration file input - ending now. ****\n");
+
+      return ret;
+    }
+    else
+    {
+      ;                                             // Do nothing - it all worked
+    }
 
 
 
@@ -209,7 +232,7 @@ int main(int argc, char *argv[])
 
 
 
-  
+
   /* --------------   Do more config stuff... ----------------- */
   /* Now get the specific processing environment(s) vars that this program needs to work in,
      such as MariaDB, MYSql, etc... database vars, required GUI-based environmental settings, etc.
@@ -557,7 +580,7 @@ int extract_param(int p_num, char p_str[])
   /* Processing debug/verbosity to govern what and how much to print/display */ 
   else if ( (p_str[1] == 'd') || (p_str[1] == 'D') )
   {
-    // Here we're looking at three possible settings, all using the '-D' switch
+    // Here we're looking at more than one possible setting type, each using the '-D' switch
     // So '-D'...  can be used more than once but each specific setting should be done only once
     if ( (strncmp(p_str, "-d", 2) == 0) || (strncmp(p_str, "-D", 2) == 0) )   
     {
@@ -583,13 +606,15 @@ int extract_param(int p_num, char p_str[])
         {  
           if (debug_log != 0)
           {
+            // Debug level already previously set - ignore this entry
             printf(" **Debug level already set. Parameter/configuration setting '%s' skipped.**\n",p_str);
           }
           else
           {
-            // Determine debug level: '1' - basic,
-            //                        '2' - more detailed, 
-            //                        '3' - All details available
+            // Determine debug level: '0' - no debug logging
+            //                        '1' - basic debug logging
+            //                        '2' - more detailed debug logging 
+            //                        '3' - All debug details details available
             //Check for a second parameter character. 
             // If there is none, then reject and skip this
             // Else determine the debug level specified
@@ -597,24 +622,38 @@ int extract_param(int p_num, char p_str[])
             if (strlen(p_str+p_str_offset) > 1)
             {
               // Yes, there is a second parameter character - the debug level being requested
-              if (p_str[p_str_offset+1] == '1')
+              if (p_str[p_str_offset+1] == '0')
+              {
+                debug_log = 0;                   // set the debug output level to 1 - basic debug output
+                printf(" **Debug: level 0, no debug logging: '%s'\n",p_str);
+              }
+              else if (p_str[p_str_offset+1] == '1')
               {
                 debug_log = 1;                   // set the debug output level to 1 - basic debug output
-                printf(" **Debug: Debug level 1, basic debug data: '%s'\n",p_str);
+                printf(" **Debug: level 1, basic debug data: '%s'\n",p_str);
               }
               else if (p_str[p_str_offset+1] == '2')
               {
                 debug_log = 2;                   // set the debug output level to 2 - More detailed debug output  
-                printf(" **Debug: Debug level 2, detailed debug data: '%s'\n",p_str);
+                printf(" **Debug: level 2, detailed debug data: '%s'\n",p_str);
               }
               else if (p_str[p_str_offset+1] == '3')
               {
                 debug_log = 3;                   // set the debug output level to 2 - More detailed debug output  
-                printf(" **Debug: Debug level 3, *Very* detailed debug data: '%s'\n",p_str);
+                printf(" **Debug: level 3, *Very* detailed debug data: '%s'\n",p_str);
               }
               else
-                printf(" **Unrecognized Debug Level requested - Parameter/configuration setting '%s' skipped.**\n",p_str);
-            }  // if (strlen(p_str+p_str_offset) > 1)
+                printf(" **Unrecognized debug Level requested - Parameter/configuration setting '%s' skipped.**\n",p_str);
+            }
+            else // if (strlen(p_str+p_str_offset) > 1)
+            {
+              // There was no debug level specified in the parameter
+              // Therefore, simply go with the program's default
+              {
+                debug_log = 0;                   // set the debug output level to 0 - no debug output
+                printf(" **Debug parameter was used but there was no debug level specified ('%s'). Going with the program's value.\n",p_str);
+              }
+            }  // else  (no specific debug lavel specified)
           }  // else
         }  // else if ( (p_str[p_str_offset] == 'l') ...
     }  // if ( (strncmp(p_str, "-d", 2) == 0) ...
@@ -634,3 +673,68 @@ int extract_param(int p_num, char p_str[])
 
   return  rc;
 } /* extract_param */
+
+/* ----------------------------------------------------------------------------------
+     Get configuration file parameters.
+     Like command line parms, these inputs will override the program's internal default
+     values that command line parms did not set. 
+    
+     Also note: All output here is to the command line - no files have yet been opened.
+   ---------------------------------------------------------------------------------- */
+int  get_config_parms()                          // Get whatever configuration file parameters are present
+{
+  // Runtime parms set. Now, look for a configuration file.   
+
+  if (cfg_open_set == 'd')                       // If the file name was *not* overridden at runtime
+  {
+    printf("Searching for the default configuration file: %s\n\n", cfg_file);
+  }
+  else
+  {
+    printf("Searching for configuration file: %s\n\n", cfg_file);
+  }
+
+  // Open the defined configuration file
+  // If it's not found, BIG problem - return with RC = 4 or higher (will end program run)
+  
+  if( (cfg_file_ptr = fopen(cfg_file,"r")) == NULL )        // Try to open the configuration file 
+  {
+    // Can't find it or won't open 
+    // if this is the default configuration file then simply return, indicate no file found 
+    // If it's a specified file (through a runtime command parameter), 
+    // then return, specifying an error condition. The program should stop on this error
+    if (cfg_open_set == 'd')                     // If this file was the default file name
+    {
+      printf(" Default configuration file not found: '%s'. Going with existing values.\n", cfg_file);
+
+      return(1);
+    }
+    else
+    {
+      // A defined file name was specified but not found, so we return with an error code
+      // The program should halt running in this case.
+      printf(" Specified configuration file not found or won't open: '%s'. Cannot continue.\n", cfg_file);
+
+      return(4);
+    }
+  }
+
+  printf(" Found the configuration file: '%s' ...\n", cfg_file);
+
+  // Now read through it and get whatever parameter settings are defined
+  // Be sure to skip all comment lines, defined by a ':' or ';' or '*' in the first column of each record
+
+
+
+
+
+
+
+
+
+
+  fclose(cfg_file_ptr);                          // close the file - no longer needed
+  
+  return 0;
+}  // get_config_parms()
+

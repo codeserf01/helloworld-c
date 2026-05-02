@@ -1,4 +1,0 @@
-* base_template_cfg.txt
-* The default configuration file accompanying program base_template
-* For programs based on the template program base_template, by default file should named [program name][_cfg.txt]
- 
