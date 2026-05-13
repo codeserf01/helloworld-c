@@ -1,1 +1,3 @@
-> configuration file for the supposed hello world project
+
+-lpgmlog.txt
+-vdebugfile.txt
