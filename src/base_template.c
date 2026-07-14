@@ -1,25 +1,30 @@
 /* ----------------------------------------------------------------------------------------------------------------------
   base_template.c
+    Version: 1.0  (June 2026)
     Author: Edward Morawski
 
-    This code is a generic, runnable C-language program. It serves as a personal template for future programs.
-    It does some basic startup stuff that I like to have in my programs such as:
-    - Display some program startup information
-    - Collect runtime command line parameters and read a configuration file, if there is one,
-      to pick up more parameters - working directories, files to open, debug output level...
-    - Set some basic processing flags and text strings
-    - Any other generic basic setup work that might be a good idea to have.
-    Since this is a generic template:
-      a) There is outline code for basic input and output files if needed.
-      b) There are NO defaults for input or output file names. If you need to use input 
-         and/or output file(s), names absolutely need to be added in.
+    This code is a generic, runnable C-language program to exercise run-time configuration through command line 
+    parameters together with configuration file parameter input.
     
-    As such, this is a 'live' file and will be modified as needed.
+    It also serves as a personal template for future programs regarding parameter processing.
 
-    Note: Before you judge codeing style and practices:
+    This program will: 
+    - Start with a displayu of some startup information.
+    - Collect runtime command line parameters, followed by read a configuration file, if there is one.
+      This will collect any run-time settings for the program run - (ie. working directories, files to open, debug output level, etc)
+    - Any other generic basic setup work that might be a good idea to have.
+    There is also some rudimentary code to accomodate basic data input and program output files. There are NO defaults
+      for these files. If you need to use input and/or output file(s), names absolutely need to be added in.
+    
+    This is a 'live' file and will be modified as needed.
+
+    Note: Before you judge coding style:
         1) Yes, it is over-engineered but meant to cover a wide range of potential coding needs
         2) Yes, the code style is definitely 'old school'. It's my style. 
-        3) There are a LOT of comments. It's for helping code clarity long after I am done with this.
+        3) There are a LOT of comments. It's for helping with code clarity long after I am done with this code.
+   
+   Updates:
+    June 2026: Version 1.0  - initial version
    ----------------------------------------------------------------------------------------------------------------------*/
 
 // Turn off the MS-oriented secure function call warnings. They are considered near-useless anyway
@@ -38,6 +43,11 @@ char def_log_path         [] = "../log/\0";         // Default log file path - o
 char def_in_path          [] = "../data/\0";        // Default input path - input data file(s)
 char def_out_path         [] = "../output/\0";      // Default output path - output file(s)
 
+/* For future consideration: The file names below are left 'bare' in case a name 
+   qualifier is needed for uniqueness among multiple runs
+*/
+char def_name_trailer_txt [] = ".txt\0";        // default text file name trailer
+
 /* ----------------------------------------------------------------------------------------- 
    Default file names. May be updated via runtime parameter(s) or a config file.
   ----------------------------------------------------------------------------------------- */
@@ -47,9 +57,6 @@ char def_debuglog_filename[] = "verbose_log\0"; // Default output file name for 
 char def_in_filename      [] = "input\0";       // Default input data file
 char def_out_filename     [] = "output\0";      // Default output data file
 
-/* The above file names are left 'bare' in case a name qualifier is needed for uniqueness among multiple runs*/
-char def_name_trailer_txt [] = ".txt\0";        // default text file name trailer
-
 // Files (in their final form) to work with 
 char cfg_file      [100];         // Configuration file name
 char log_file      [100];         // Log output file name
@@ -58,11 +65,11 @@ char in_file       [100];         // Program input file name
 char out_file      [100];         // Program output file name
 
 /*  File handles */
-FILE *cfg_file_ptr;               // Input - configuration file
-FILE *log_file_ptr;               // Log output file name
-FILE *debuglog_file_ptr;          // Verbose/Debug log output file name
-FILE *in_file_ptr;                // Input data file name
-FILE *out_file_ptr;               // Program output file name
+FILE *cfg_file_ptr      = NULL;   // Input - configuration file
+FILE *log_file_ptr      = NULL;   // Log output file name
+FILE *debuglog_file_ptr = NULL;   // Verbose/Debug log output file name
+FILE *in_file_ptr       = NULL;   // Input data file name
+FILE *out_file_ptr      = NULL;   // Program output file name
 
 // Flags to indicate if the above files are actually opened. Default value is 0 (ie. 'no')
 int  cfg_open      = 0;
@@ -151,13 +158,14 @@ int main(int argc, char *argv[])
   // Debug: Display the resulting string, which should show the program name only, at run-time. 
   /*
   if (cptr != NULL) 
-        { printf("Basic program name: %s\n", cptr+1);   // String after the LAST occurance of '/' in the string } 
+        { printf("Runtime program name: %s\n", cptr+1);   // String after the LAST occurance of '/' in the string } 
   else  { printf("Character not found.\n"); }
   */  
   
   /* -------------------------------------------------------------------------------------------------
     Get all command line and configuration file parameters to set specific overrides.
-      1) Program already has hard-coded default values and will be used if no corresponding override is found.
+    This is the override precidence:
+      1) Program already has hard-coded default values. Those will be used if no corresponding override is found.
       2) Command line parms will override default values.
       3) Configuration file parameters will override default values not already overridden by the command line parms.
      -------------------------------------------------------------------------------------------------
@@ -168,17 +176,14 @@ int main(int argc, char *argv[])
   switch (ret)                                      // look at the return code
   {
     case 0 :  break;                                // do nothing - it's all good
-    case 1 : 
-              printf(" No command line parameters. \n");   // Indicate that there were no runtime parms found.
+    case 1 :  printf("\n * No command line parameters. *\n");   // Indicate that there were no runtime parms found.
               break;
     
-    case 2 : 
-              break;
+    case 2 :  break;
     
-    case 3 : 
-              break;
+    case 3 :  break;
     
-    default:  printf(" **** Bad/Invalid command line input - ending now. rc=%d****\n", ret);
+    default:  printf("\n **** Bad/Invalid command line input - ending now. rc=%d****\n", ret);
               return ret;                                   // Yes, quit the program
 
               break;
@@ -202,7 +207,7 @@ int main(int argc, char *argv[])
     
     case 1 : 
               // No default file was found and no alternate specified - go with pgm defaults
-              printf(" Default configuration file <%s> not found. Going with existing values.\n", cfg_file);
+              printf(" Default configuration file <%s> not found. Going with coded defaults.\n", cfg_file);
               
               break;                                
 
@@ -233,7 +238,6 @@ int main(int argc, char *argv[])
      Once the log file and the debug file (if any) are opened, initialize them with
      some opening output, including run-time config information
   */
-
 
 
 
@@ -338,9 +342,6 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
   } 
   else
   {
-    /* Parse out the runtime parameters */
-    // if (debug_log) 
-    if ( debug_log > 1) printf(" Number of parameters: %d\n", pgm_argc -1);     // Display the number of parameters, excluding parm 0 (program name)
     /*  Parse each input parameter  */
     param = 1;                           // Intialize to read the first parameter after pgm name
     while ( param < pgm_argc )           // Traverse the chain of parms; make sure you're not going past the end of the array
@@ -401,12 +402,12 @@ int  get_config_parms()                          // Get whatever configuration f
   // Open the defined configuration file
   // If it's not found, BIG problem - return with RC = 4 or higher (will end program run)
 
-  printf(" Looking for configuration file: <%s> ...\n", cfg_file);
+  printf(" Searching for configuration file: <%s> ...\n", cfg_file);
   if( (cfg_file_ptr = fopen(cfg_file,"r")) == NULL )        // Try to open the configuration file 
   {
     // Can't find it or won't open 
     // If this file is the default configuration file then simply return, indicate no file found 
-    // If it's a specific file (through a runtime command parameter), 
+    // If it's a specific file (specified through a runtime command parameter), 
     // then return with an error code
     if (cfg_open_set == 'd')                     // If this file was the default file name
     {
@@ -416,17 +417,16 @@ int  get_config_parms()                          // Get whatever configuration f
     }
     else
     {
-      // An alternate (non-default) file name was specified but not found, so we return with an error code
+      // An alternate (non-default) file name was specified but not found, return with an error code
       // The program should halt running in this case.
-      // We want to see this message.
       printf(" Configuration file <%s> was not found or won't open. Cannot continue.\n", cfg_file);
 
       return(4);
     }
   }
   
-  // Now read through the file and get whatever parameter settings are included
-  // Be sure to skip all comment lines, defined by a ':' or ';' or '*' in the first column of each record
+  // File found and opened. Now read through it and get whatever parameter settings are included
+  // Be sure to skip all comment lines, defined by a ':' or ';' or '*' in the first column of each line/record
 
   data_str = (char *) malloc (input_bufsize);     // Allocate an input buffer to read in a record/line
   while (!feof(cfg_file_ptr))
@@ -441,16 +441,16 @@ int  get_config_parms()                          // Get whatever configuration f
     if (rc == 1)
     {
       // Blank line - no text. To be skipped
-      if (debug_log > 1)   printf(" CFG: Line %d skipped - Blank line: <%s>\n",line_count, data_str);
+      if (debug_log > 2)   printf(" CFG: Line %d skipped - Blank line: <%s>\n",line_count, data_str);
     }
     else
     {
       // Comment lines within the file are flagged as one of the following chars in the first column
-      if ( data_str[0] == ' '  ||                 // Look for embedded comment(s)
+      if ( data_str[0] == ':'  ||                 // Look for embedded comment(s)
            data_str[0] == '>'  ||                 // Yes, all these prefixes will denote a comment line
            data_str[0] == '*'  ||                 // because, well, I can
            data_str[0] == ';'  ||
-           data_str[0] == ':' 
+           data_str[0] == ' ' 
          )
       {
         // Comment line - to be skipped
@@ -458,17 +458,17 @@ int  get_config_parms()                          // Get whatever configuration f
       }
       else
       {
-        // Now some real program input
+        // Now some configuration file input
         // Assume that there will be only one switch per line
         if (debug_log > 2) printf(" CFG: Line %d: String: <%s>\n",line_count, data_str);
-        rc = extract_param(data_str);           // Process the next file parameter
+        rc = extract_param(data_str);           // Process the text string found
         if (rc != 0)
         {
           if (rc > 3)                           // Invalid parameter value found.
           {
             printf(" CFG: Parameter <%s>: Unusual return code: %d\n", data_str, rc);
 
-            return rc;
+            return rc;                          // Return immediately - bad input 
           }
           else
           {
@@ -479,7 +479,7 @@ int  get_config_parms()                          // Get whatever configuration f
                                         line_count, data_str, rc);
             // Do nothing, continue
           }
-          return (rc);
+          // return (rc);
         }
         else
         {  ;  }                                // Good parameter nothing more to do
@@ -496,31 +496,33 @@ int  get_config_parms()                          // Get whatever configuration f
 
 /* -----------------------------------------------------------------------------
 * extract_param
-*  Extract and parse the parameter string from the text passed to this function.
-*  This function will work with both command line parameters and configuration file settings.
+*  Parse the parameter/switch string from the text passed to this function.
+*  This function is used for command line parameters and configuration file settings.
 *  Overrides must be coded to the same rules for both sources.
 *
+*  In the spirit of massively over-engineering this basic skeleton program....
+*
 *  This function will overwrite the program's default (hard-coded) values and set 
-*  the corresponding flag to indicate an update. This is intended to prevent serial 
-*  updates, regardless of source.
+*  the corresponding flag to indicate an update. This is intended to prevent multiple updates  
+*  in the same program run.
 *
-*  Note: The error messages will only go to standard output because the log and 
-*        debug files (if any) have not yet been determined at this stage of program execution.
-*
-*  Since we're massively over-engineering this basic skeleton program....
+*  Note: Any resulting error messages will only go to standard output because the log and/or debug files
+*        have yet been opened at this (early) stage of program execution.
 *
 *  Parameters/switches are usually expected to be in the form of 
-*   1) '/x...'  or '-x...'
-*   2) '/x=...' or '-x=...'
+*      '/x...'  or 
+*      '-x...'  or
+*      '/x=...' or 
+*      '-x=...'
 *
-*  So check if the parameter includes a '=' character in the third space (ie. '-c=')
-*  If it does, then the parameter value parsing needs to accomodate this extra character
+*  ie. The '/' or '-' prefix will always be expected, always 1st character
+*      The '=' is optional, always the 3rd character  
 *
 *  ALSO:
-*  Check that this parameter string isn't empty 
-*  and: Ignore LONG parameter strings for now; they would be invalid anyways)
+*  Check that this parameter string isn't empty (ie. spaces/CRLF after the switch name)
+*  and: Ignore LONG parameter strings - longer than what would be considered valid. Treat it as bad input.
 *  
-*  Important: Some of the overrides will not be seen in a configuration file but only 
+*  Note also: Some of the overrides will not be seen in a configuration file but only 
 *             as a command line parameter but they're seen here anyways for code simplicity
 *
 * --------------------------------------------------------------------------------*/
@@ -529,26 +531,34 @@ int extract_param(char p_str[])
   int rc = 0;                     // Generic rc value for function calls
   int p_str_offset = 0;           // Offset to accomodate varying parameter flags
 
-  if (debug_log> 1) printf(" Ext: Parm str: <%s>\n", p_str);       // Debug: Display the parm you're going to parse
+  if (debug_log> 2) printf(" Ext: String: <%s>\n", p_str);       // Debug: Display the parm you're going to parse
 
   // Check if this parameter string is long enough to actually potentially hold a value
   // I won't be checking for 'too-long' parameters. Let's assume at this time that this won't happen.
   
-  if (strlen(p_str) > 2)                      // if the parameter string is at least a proper minimum string length (without a '=' char)
+  if (strlen(p_str) < 3)                      // if the string is too short to contain a proper switch and value)
   {
-    if ( (p_str[0] == '-' ) ||                 // Does it begin with a proper parmeter indicator?
+    // This parameter string isn't even minimal length to indicate a program switch 
+    // and any associated value, so it's invalid. Exit function with a bad rc.
+    // if (debug_log > 1) 
+    printf(" Ext: Switch <%s> is invalid - too short. Program Exit.\n", p_str);
+  
+    return(4);                                // Program should stop on this bad input
+  }
+  else
+  {
+    if ( (p_str[0] == '-' ) ||                 // Does it begin with a proper switch/parmeter indicator?
          (p_str[0] == '/' )  )
     {
       // Next check if the switch also has a '=' char (3rd position)
       if (p_str[2] == '=')  
       {
-        // If it does, then be sure to read the text after this char for the switch setting
-        // This means setting an offset value to read the text after this '=' character
+        // If it does, then set an offset value be to read the text after this char for the switch text
         p_str_offset = 3;
       }
       else
       {
-        // No '=' char found, so set the string offset to 2, to read after the switch name
+        // No '=' char found, so set the string offset to 2, to read after the 2nd character of the text
         p_str_offset = 2;
       }
       if (strlen(p_str) > p_str_offset)       // check if there is anything beyond this switch value
@@ -557,8 +567,8 @@ int extract_param(char p_str[])
       }
       else
       {
-        // No, this is an empty switch
-        if (debug_log > 1) printf(" Ext: Switch <%s> is empty - no defined setting value. Program Exit.\n", p_str);
+        // No, this is an empty switch - return with a bad rc. 
+        printf(" Ext: Switch <%s> is empty - no defined setting value. Program Exit.\n", p_str);
   
         return(4);                            // Program should stop on this bad input
       }
@@ -571,18 +581,10 @@ int extract_param(char p_str[])
         return(4);                            // Program should stop on this bad input
     }
   }
-  else
-  {
-    // This parameter string isn't even minimal length to indicate a program switch 
-    // and any associated value, so it's invalid
-    if (debug_log > 1) printf(" Ext: Switch <%s> is too short and invalid. Program Exit.\n", p_str);
-  
-    return(4);                                // Program should stop on this bad input
-  }
   /* -------------------------------------------------------------------------
-     Parse out the individual program parameter. These parms may be entered 
-     at the command line or configuration file in any order. Badly entered or 
-     invalid parms will be flagged/displayed and skipped.
+     Parse the individual input string. These parameters may be entered 
+     at the command line or configuration file in any order. Badly entered or invalid 
+     parameters will be displayed and skipped or flagged as bad input and the program stopped.
 
      'set' flags are hard-coded to 'd' and will be overwritten to a new value only once.
      If a duplicate/repeated parameter is found, the flag will prevent another update
@@ -594,7 +596,7 @@ int extract_param(char p_str[])
      ------------------------------------------------------------------------- */
   // Configuration file name - parm '-c' or -C' or '/c' or '/C'
   // -----------------------------------------------------------------------------------
-  if ( (p_str[1] == 'c') || (p_str[1] == 'C') )          // If a configuration file name switch
+  if ( (p_str[1] == 'c') || (p_str[1] == 'C') )           // If a configuration file name switch
   {
     if (cfg_open_set == 'd')                             // If this value hasn't been updated 
     {
@@ -620,58 +622,11 @@ int extract_param(char p_str[])
     }
   }  // Configuration file name - if ( (strncmp( p_str, "-c", 2) == 0 ) ...
 
-  else if ( (p_str[1] == 'l') || (p_str[1] == 'L') )      // If a log file parameter
+  else if ( (p_str[1] == 'l') || (p_str[1] == 'L') )      // If a log file name
   {
     if (debug_log > 1) printf(" Ext: Log parm: <%s>\n",p_str);
 
-
-
-
-
-
-
-    // Determine here if you don't want a program log output file
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    // Determine here if you want or don't want a program log output file
 
     if (log_open_set == 'd')                             // If this value hasn't yet been updated
     {
@@ -685,6 +640,7 @@ int extract_param(char p_str[])
       }
       else
       {
+        // Otherwise, use the default log path to prefix the log file name
         strcat(log_file, def_log_path);                             // use the default log path prefix
         strcat(log_file, p_str+p_str_offset);                       // add the config file name
         if (debug_log > 1) printf(" Ext: Log file name (qualified): <%s>\n",log_file);
@@ -696,54 +652,11 @@ int extract_param(char p_str[])
       if (debug_log > 1) printf(" Ext: **Log file name already set - Parameter/Configuration setting <%s> skipped.**\n",p_str);
     }
   
+  } // if ( (p_str[1] == 'l') || (p_str[1] == 'L') ) // * Log file *
   
-  
-  
-  
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-  } // if ( (p_str[1] == 'l') || (p_str[1] == 'L') )
-  
-  else if ( (p_str[1] == 'v') || (p_str[1] == 'V') )                // If debug/verbose file parameter
+  else if ( (p_str[1] == 'v') || (p_str[1] == 'V') )      // If debug/verbose file name
   {
+    // Get the debug log file name from the text string
     if (debuglog_open_set == 'd')                                   // If this value hasn't yet been updated
     {
       memset(debuglog_file, '\0', sizeof(debuglog_file));           // prep - NULL fully NULL out string 
@@ -754,7 +667,7 @@ int extract_param(char p_str[])
         strcat(debuglog_file, p_str+p_str_offset);                  // Use the file name as-is
         if (debug_log > 1) printf(" Ext: Debug/Verbose log file name: <%s>\n",debuglog_file);
       }
-      else        
+      else
       { 
         strcat(debuglog_file, def_log_path);                        // use the default log path prefix
         strcat(debuglog_file, p_str+p_str_offset);                  // add the config file name
@@ -768,7 +681,7 @@ int extract_param(char p_str[])
     }
   } //   else if ( (p_str[1] == 'v') || (p_str[1] == 'V') )
 
-  else if ( (p_str[1] == 'o') || (p_str[1] == 'O') )     // If an output data file parameter
+  else if ( (p_str[1] == 'o') || (p_str[1] == 'O') )      // If an output data file name
   {
     if (out_open_set == ' ')                             // If this value hasn't yet been specified
     {
@@ -794,11 +707,11 @@ int extract_param(char p_str[])
     }
   }  //   else if ( (p_str[1] == 'o') || (p_str[1] == 'O') ) ...
 
-  else if ( (p_str[1] == 'i') || (p_str[1] == 'I') )      // If an input data file parameter
+  else if ( (p_str[1] == 'i') || (p_str[1] == 'I') )      // If an input data file
   {
-    if (in_open_set == ' ')                              // If this value hasn't yet been updated
+    if (in_open_set == ' ')                               // If this value hasn't yet been updated
     {
-      memset(in_file, '\0', sizeof(in_file));            // prep - fully NULL out string 
+      memset(in_file, '\0', sizeof(in_file));             // prep - fully NULL out string 
       // If the program input file name is fully qualified (ie. with a path prefix) then use it as-is,
       // else prefix the file name with the default qualifying directory
       if (p_str[p_str_offset] == '.' ||  p_str[p_str_offset] == '/')     // If there is a path prefix to te name
@@ -808,35 +721,39 @@ int extract_param(char p_str[])
       }
       else        
       { 
-        strcat(in_file, def_in_path);                                     // use the default path prefix
-        strcat(in_file, p_str+p_str_offset);                              // add the config file name
+        strcat(in_file, def_in_path);                     // use the default path prefix
+        strcat(in_file, p_str+p_str_offset);              // add the config file name
         if (debug_log > 1) printf(" Ext: Input file name (qualified): <%s>\n",in_file);
       }
-        in_open_set = 'r';                               // Indicate that this default value is now overwritten
+      in_open_set = 'r';                                  // Indicate that this default value is now overwritten
     } //* else if ( (p_str[1] == 'i') || (p_str[1] == 'I') )
-    else                                                 // Already set - ignore
+    else                                                  // Already set - ignore
     { 
       if (debug_log > 1) printf(" Ext: Input file name previously set - override skipped: <%s>.\n",p_str);
     }
   }  // else if ( (p_str[1] == 'i') || (p_str[1] == 'I') )
   
-  // Debug flags: Complicated parsing - multiple possibilities for a single switch:
   else if ( (p_str[1] == 'd') || (p_str[1] == 'D') )
   {
-    // Warning - over-engineering:
-    // Now we're looking for more than one possible setting type, each one using the '-D' or '-d' switch
+    // Debug flags: Complicated parsing - multiple possibilities for a single switch:
+    // Over-engineering:
+    // Now we're looking for more multiple setting types, each using the '-D' or '-d' switch
     //
     //     1) Processing debug/verbosity to govern what and how much to print/display
     //        This will set the 'debug_log' global variable
     //        int  debug_log          = 0;      // Create a debug file and set verbosity 
-    //                                             ('0' - none, '1'- basic, '2'- detailed, '3'- All details available)
+    //                                             ('0'- none/no logging (default),
+    //                                              '1'- basic/minimal,
+    //                                              '2'- detailed/more,
+    //                                              '3'- All details available)
     //                            
     // AND 2) flag for frequent file and output buffer flushes, to help debugging in case the program fails mid-work
     //        This will set the 'debug_flush' global variable
     //        int  debug_flush        = 0;      // Perform frequent debug/log file buffer flushes
-    //                                              ('0' - no frequent buffer flush, '1' - do frequent buffer flushes)
+    //                                              ('0' - no frequent buffer flush, 
+    //                                               '1' - do frequent buffer flushes)
 
-    // First the flush parameter:
+    // First, the flush parameter:
     if ( (p_str[p_str_offset] == 'b') || (p_str[p_str_offset] == 'B') )
     {
       if (debug_flush != 0)                     // If this flag has already been set
@@ -864,7 +781,7 @@ int extract_param(char p_str[])
       }
       else
       {
-        // The debug level has not been previously set
+        // The debug level has not been previously setd
         // Determine debug level: '0' - no debug logging   (actually the default)
         //                        '1' - basic debug logging
         //                        '2' - more detailed debug logging 
@@ -913,7 +830,7 @@ int extract_param(char p_str[])
     }  // else if ( (p_str[p_str_offset] == 'l') ...  Check for debug level
   }  // if ( (strncmp(p_str, "-d", 2) == 0) ...
   // After all this checking, determine that this is an invalid flag/parameter and reject it
-  else // final case - (no 'if'...) flag this is definitely an invalid parameter
+  else // final case - flag this is as an invalid parameter
   {
     // Invalid parameter type. It was not prefixed with '-' or '/' 
     // Return with a return code 4
