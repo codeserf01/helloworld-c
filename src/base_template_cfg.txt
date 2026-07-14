@@ -9,5 +9,5 @@
 
 
 
--lpgmlog.txt
--vdebugfile.txt
+-l./pgmlog.txt
+-v./debugfile.txt

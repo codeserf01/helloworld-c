@@ -273,7 +273,37 @@ int main(int argc, char *argv[])
       fprintf(log_file_ptr, "(UTC): %s\n", UTC_start_Time_str);                         // Run time - UTC time string  
       fprintf(log_file_ptr, "=================================================================================\n");
       fprintf(log_file_ptr, "\n\n");                                                    // Finish initial output with line feed(s) 
-     }
+
+
+      // Add the config & debug values here
+
+
+    }
+  }
+
+  if (debug_log)                                              // If you want an debug log file
+  {
+    if( (debuglog_file_ptr = fopen(debuglog_file,"w")) == NULL )      // Try to open the output log file 
+    {
+      // If we cannot open an output log file the program should halt running in this case.
+      // We want to see this message.
+      printf(" Program log file cannot be opened: %s Cannot continue.\n", log_file);
+
+      return(4);
+    }
+    else
+    { 
+      // Display some startup information.
+      fprintf(log_file_ptr, "============================= Debug Output ======================================\n");
+      fprintf(log_file_ptr, "Program: %s\n", pgm_name);                                 // Display this program's name
+      fprintf(log_file_ptr, "Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Program's compile date and time
+      fprintf(log_file_ptr, "Current time: (local): %s, ", loc_start_Time_str);         // Run time - 'local time' string
+      fprintf(log_file_ptr, "(UTC): %s\n", UTC_start_Time_str);                         // Run time - UTC time string  
+      fprintf(log_file_ptr, "============================= Debug Output ======================================\n");
+      fprintf(log_file_ptr, "\n\n");                                                    // Finish initial output with line feed(s) 
+
+      // Add the config & debug values here
+    }
   }
 
 
@@ -291,7 +321,9 @@ int main(int argc, char *argv[])
 
 
   if (pgm_log)
-    fclose(log_file_ptr);      // Proigrm end - if the log file was opened, then close it
+    fclose(log_file_ptr);           // Program end - if the log file was opened, then close it
+  if (debug_log)
+    fclose(debuglog_file_ptr);      // Program end - if the debug log file was opened, then close it
 
   return ret;           // End the program with whatever return code is intended 
 } /* main */
@@ -626,11 +658,15 @@ int extract_param(char p_str[])
   {
     if (debug_log > 1) printf(" Ext: Log parm: <%s>\n",p_str);
 
-    // Determine here if you want or don't want a program log output file
+    
+    
+    // Add code here to determine if you want or don't want a program log output file
 
+    
+    
     if (log_open_set == 'd')                             // If this value hasn't yet been updated
     {
-      memset(log_file, '\0', sizeof(log_file));          // prep - NULL fully NULL out string 
+      memset(log_file, '\0', sizeof(log_file));          // prep - init/NULL out string 
       // If the log file name is fully qualified (ie. with a path prefix) then use it as-is,
       // else prefix the file name with the default qualifying directory
       if (p_str[p_str_offset] == '.' ||  p_str[p_str_offset] == '/')        // If there is a path prefix to the name
@@ -645,7 +681,8 @@ int extract_param(char p_str[])
         strcat(log_file, p_str+p_str_offset);                       // add the config file name
         if (debug_log > 1) printf(" Ext: Log file name (qualified): <%s>\n",log_file);
       }
-        log_open_set = 'r';                                         // Indicate that this default value is now overwritten
+      log_open_set = 'r';                                         // Indicate that this default value is now overwritten
+      pgm_log = 1;                                                // Set the flag to produce a program log file
     } /* log_open_set */
     else
     {
@@ -654,26 +691,26 @@ int extract_param(char p_str[])
   
   } // if ( (p_str[1] == 'l') || (p_str[1] == 'L') ) // * Log file *
   
-  else if ( (p_str[1] == 'v') || (p_str[1] == 'V') )      // If debug/verbose file name
+  else if ( (p_str[1] == 'v') || (p_str[1] == 'V') )               // If debug/verbose file name
   {
     // Get the debug log file name from the text string
-    if (debuglog_open_set == 'd')                                   // If this value hasn't yet been updated
+    if (debuglog_open_set == 'd')                                  // If this value hasn't yet been updated
     {
-      memset(debuglog_file, '\0', sizeof(debuglog_file));           // prep - NULL fully NULL out string 
+      memset(debuglog_file, '\0', sizeof(debuglog_file));          // prep - NULL fully NULL out string 
       // If the debug log file name is fully qualified (ie. with a path prefix) then use it as-is,
       // else prefix the file name with the default qualifying directory
       if (p_str[p_str_offset] == '.' ||  p_str[p_str_offset] == '/')       // If there is a path prefix to the name
       {
-        strcat(debuglog_file, p_str+p_str_offset);                  // Use the file name as-is
+        strcat(debuglog_file, p_str+p_str_offset);                 // Use the file name as-is
         if (debug_log > 1) printf(" Ext: Debug/Verbose log file name: <%s>\n",debuglog_file);
       }
       else
       { 
-        strcat(debuglog_file, def_log_path);                        // use the default log path prefix
-        strcat(debuglog_file, p_str+p_str_offset);                  // add the config file name
+        strcat(debuglog_file, def_log_path);                       // use the default log path prefix
+        strcat(debuglog_file, p_str+p_str_offset);                 // add the config file name
         if (debug_log > 1) printf(" Ext: Debug/Verbose log file name (qualified): <%s>\n",debuglog_file);
       }
-        debuglog_open_set = 'r';                                    // Indicate that this default value is now overwritten
+        debuglog_open_set = 'r';                                   // Indicate that this default value is now overwritten
     } /* debuglog_open_set */
     else
     { 
@@ -681,7 +718,7 @@ int extract_param(char p_str[])
     }
   } //   else if ( (p_str[1] == 'v') || (p_str[1] == 'V') )
 
-  else if ( (p_str[1] == 'o') || (p_str[1] == 'O') )      // If an output data file name
+  else if ( (p_str[1] == 'o') || (p_str[1] == 'O') )     // If an output data file name
   {
     if (out_open_set == ' ')                             // If this value hasn't yet been specified
     {
@@ -753,21 +790,22 @@ int extract_param(char p_str[])
     //                                              ('0' - no frequent buffer flush, 
     //                                               '1' - do frequent buffer flushes)
 
-    // First, the flush parameter:
-    if ( (p_str[p_str_offset] == 'b') || (p_str[p_str_offset] == 'B') )
+    // First, check for a the 'flush' parameter:
+    if ( (p_str[p_str_offset] == 'f') || (p_str[p_str_offset] == 'F') )
     {
-      if (debug_flush != 0)                     // If this flag has already been set
+      if (debug_flush != 0)                     // If this flag has already been set (ie. not 0) 
       {
         // Output warning message: Flag already set. This setting attempt will be skipped
-        if (debug_flush > 0)                    // If this is already set
+        if (debug_log > 1)                      // If debug level wants a message
         {
           printf(" Ext: Frequent file flushes already set. This setting <%s> skipped.**\n",p_str);
         }
-        else
-        {
-          debug_flush = 1;                     // Debug: Do frequent output buffer flushes
-          if (debug_log > 1) printf(" Debug: Frequent file flushes set: <%s>\n",p_str);
-        }    
+      }
+      else
+      {
+        // FLag has not yet been set
+        debug_flush = 1;                        // Debug: Do frequent output buffer flushes
+        if (debug_log > 1) printf(" Ext: Frequent file flushes set: <%s>\n",p_str);
       }
     }
     // Now check if the debug level is being set
@@ -781,26 +819,28 @@ int extract_param(char p_str[])
       }
       else
       {
-        // The debug level has not been previously setd
+        // The debug level has not been previously set
         // Determine debug level: '0' - no debug logging   (actually the default)
         //                        '1' - basic debug logging
         //                        '2' - more detailed debug logging 
         //                        '3' - All debug details details available
-        //Check for a second parameter character. 
+        // Check for a second parameter character. 
         // if there is none, then reject this entry and skip it
         // If wrong or undetermined value, reject and skip
+        //
         if (strlen(p_str+p_str_offset) == 2)           // There should be exactly one numbered setting
         {
-          // Yes, there is a second parameter character - the debug level being requested
+          // Yes, there is a second parameter character - the debug level is being defined
           if (p_str[p_str_offset+1] == '0')
           {
-                debug_log = 0;                   // set the debug output level to 1 - basic debug output
+            debug_log = 0;                   // set the debug output level to 0 - no debug output at all
             if (debug_log > 1) printf(" Ext: Debug: level 0, no debug logging: <%s>\n",p_str);
           }
           else if (p_str[p_str_offset+1] == '1')
           {
             debug_log = 1;                   // set the debug output level to 1 - basic debug output
             if (debug_log > 1) printf(" Ext: Debug: level 1, basic debug data: <%s>\n",p_str);
+            debug_log = 1;                   // No debug log output, regardless of whatever other debug settings are made
           }
           else if (p_str[p_str_offset+1] == '2')
           {
@@ -823,7 +863,7 @@ int extract_param(char p_str[])
           // Therefore, simply go with the program's default
           {
             debug_log = 0;                   // set the debug output level to 0 - no debug output
-            // if (debug_log > 1) printf(" Ext: Debug parameter was used but was vague (<%s>). Going with default.\n",p_str);
+            if (debug_log > 1) printf(" Ext: Debug parameter was used but was vague (<%s>). Going with default.\n",p_str);
           }
         }  // else
       } // Else to if (debug_log >1) - If debug level has already been set previously
