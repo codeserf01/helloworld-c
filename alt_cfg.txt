@@ -1,0 +1,3 @@
+
+-l=./log/pgmlog.txt
+-v=./log/debuglog.txt

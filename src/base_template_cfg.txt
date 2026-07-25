@@ -2,12 +2,19 @@
 * The default configuration file accompanying program base_template
 * For programs based on the template program base_template, by default file should named [program name][_cfg.txt]
 
-
-
-
-
-
-
-
--l./pgmlog.txt
--v./debugfile.txt
+* Hard-coded parameters for this program:
+* -c=--- Configuration program name (used on the command line at runtime)
+* -l=--- Log output file name
+* -v=--- Debug log file name
+* -d=--- Debug level flag:
+*           F/f - activate frequent file buffer flushes
+*           L/l0  - No debug logging 
+*           L/l1  - Basic debug info recording
+*           L/l2  - more detailed debug info recording
+*           L/l3  - All the debug info available
+* -i=---  Input data file name ( for later development )
+* -o=---  Program output file name  (for later development)
+*
+-d=l1
+-l=./pgmlog.txt
+-v=./debuglog.txt

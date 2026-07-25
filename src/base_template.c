@@ -37,11 +37,13 @@
 #include <ctype.h>                          // Detect specific character types
 
 // Default paths - the expected *relative* locations of pre-coded files:
-// By default it's assumed that the program is being run from its 'bin' directory
+// By coded default, the program will write files to the current directory's sub-directories 'log', 'data', etc..
 char def_path             [] = "./\0";              // Default generic path for files
-char def_log_path         [] = "../log/\0";         // Default log file path - output log(s)
-char def_in_path          [] = "../data/\0";        // Default input path - input data file(s)
-char def_out_path         [] = "../output/\0";      // Default output path - output file(s)
+char def_log_path         [] = "./log/\0";         // Default log file path - output log(s)
+char def_in_path          [] = "./data/\0";        // Default input path - input data file(s)
+char def_out_path         [] = "./output/\0";      // Default output path - output file(s)
+
+// *****put any other paths here ***** 
 
 /* For future consideration: The file names below are left 'bare' in case a name 
    qualifier is needed for uniqueness among multiple runs
@@ -53,7 +55,7 @@ char def_name_trailer_txt [] = ".txt\0";        // default text file name traile
   ----------------------------------------------------------------------------------------- */
 char def_cfg_filename     [] = "cfg\0";         // Default run-time configuration file name
 char def_log_filename     [] = "log\0";         // Default output log  name - 'just the essentials'
-char def_debuglog_filename[] = "verbose_log\0"; // Default output file name for verbose log and debug output
+char def_debuglog_filename[] = "debuglog\0";    // Default output file name for verbose log and debug output
 char def_in_filename      [] = "input\0";       // Default input data file
 char def_out_filename     [] = "output\0";      // Default output data file
 
@@ -162,6 +164,34 @@ int main(int argc, char *argv[])
   else  { printf("Character not found.\n"); }
   */  
   
+  /* Initialize default file name strings to NULL */
+  memset(cfg_file,     '\0', sizeof(cfg_file));    
+  memset(log_file,     '\0', sizeof(log_file));    
+  memset(debuglog_file,'\0', sizeof(debuglog_file));    
+  memset(in_file,      '\0', sizeof(in_file));    
+  memset(out_file,     '\0', sizeof(out_file));    
+
+
+  // By default, the program's configuration file is assumed to be in the same directory as the program is run from
+  // Default file setup: The configuration is found in the present working directory (ie. './')
+  //                     Log file output(s) will be put in the 'log' subdirectory of the present working directory
+  //                     The input data file - if any - is found in the 'data ' subdirectory
+  //                     The program output file(s) - if any - will be written out to the 'output' subdirectory
+
+  /* -- Set set the files names to default hard-coded values */ 
+  sprintf(cfg_file,      "%s%s_%s%s", def_path,     pgm_name, def_cfg_filename,      def_name_trailer_txt);  // Default config file name
+  sprintf(log_file,      "%s%s_%s%s", def_log_path, pgm_name, def_log_filename,      def_name_trailer_txt);  // Default pgm log file name
+  sprintf(debuglog_file, "%s%s_%s%s", def_log_path, pgm_name, def_debuglog_filename, def_name_trailer_txt);  // Default pgm's debug log
+  
+  // Screen display some startup information to show that the program is actually running.
+  printf("\n");                                                    // Separate output from any preceeding terminal text 
+  printf("Program: %s\n", pgm_name);                                 // Display this program's name
+  printf("Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Program's compile date and time
+  printf("Current time: (local): %s, ", loc_start_Time_str);         // Run start time - 'local time' string
+  printf("(UTC): %s", UTC_start_Time_str);                           // Run start time - UTC time string  
+  printf("\n\n");                                                    // Finish initial output with line feed(s) 
+
+
   /* -------------------------------------------------------------------------------------------------
     Get all command line and configuration file parameters to set specific overrides.
     This is the override precidence:
@@ -176,14 +206,14 @@ int main(int argc, char *argv[])
   switch (ret)                                      // look at the return code
   {
     case 0 :  break;                                // do nothing - it's all good
-    case 1 :  printf("\n * No command line parameters. *\n");   // Indicate that there were no runtime parms found.
+    case 1 :  printf("\n* No command line parameters. *\n");   // Indicate that there were no runtime parms found.
               break;
     
     case 2 :  break;
     
     case 3 :  break;
     
-    default:  printf("\n **** Bad/Invalid command line input - ending now. rc=%d****\n", ret);
+    default:  printf("\n**** Bad/Invalid command line input - ending now. rc=%d****\n", ret);
               return ret;                                   // Yes, quit the program
 
               break;
@@ -207,7 +237,7 @@ int main(int argc, char *argv[])
     
     case 1 : 
               // No default file was found and no alternate specified - go with pgm defaults
-              printf(" Default configuration file <%s> not found. Going with coded defaults.\n", cfg_file);
+              printf("Default configuration file <%s> not found. Going with coded defaults.\n", cfg_file);
               
               break;                                
 
@@ -218,12 +248,12 @@ int main(int argc, char *argv[])
     case 3 : 
               break;
   
-    case 4 :  printf(" Configuration file error - ending now. RC: %d\n", ret);
+    case 4 :  printf("Configuration file error - ending now. RC: %d\n", ret);
 
               return ret;
               break;
   
-    default:  printf(" Configuration error - ending now. RC: %d\n", ret);   // Program panic
+    default:  printf("Configuration error - ending now. RC: %d\n", ret);   // Program panic
               
               return ret;
               break;
@@ -239,72 +269,96 @@ int main(int argc, char *argv[])
      some opening output, including run-time config information
   */
 
-
-
-
-  // Screen display some startup information to show that the program is actually running.
-  printf("\n\n");                                                    // Separate output from any preceeding terminal text 
-  printf("Program: %s\n", pgm_name);                                 // Display this program's name
-  printf("Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Program's compile date and time
-  printf("Current time: (local): %s, ", loc_start_Time_str);         // Run start time - 'local time' string
-  printf("(UTC): %s", UTC_start_Time_str);                           // Run start time - UTC time string  
-  printf("\n\n");                                                    // Finish initial output with line feed(s) 
-
-
-
-
   if (pgm_log)                                              // If you want an ouput log file
   {
+    printf("Processing log file: %s.\n", log_file);
+
     if( (log_file_ptr = fopen(log_file,"w")) == NULL )      // Try to open the output log file 
     {
       // If we cannot open an output log file the program should halt running in this case.
       // We want to see this message.
-      printf(" Program log file cannot be opened: %s Cannot continue.\n", log_file);
+      printf("Log file cannot be opened. Cannot continue.\n");
 
       return(4);
     }
     else
     { 
       // Display some startup information.
-      fprintf(log_file_ptr, "=================================================================================\n");
+      fprintf(log_file_ptr, "============================= Program Log Output ======================================\n");
       fprintf(log_file_ptr, "Program: %s\n", pgm_name);                                 // Display this program's name
       fprintf(log_file_ptr, "Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Program's compile date and time
       fprintf(log_file_ptr, "Current time: (local): %s, ", loc_start_Time_str);         // Run time - 'local time' string
       fprintf(log_file_ptr, "(UTC): %s\n", UTC_start_Time_str);                         // Run time - UTC time string  
-      fprintf(log_file_ptr, "=================================================================================\n");
+      fprintf(log_file_ptr, "============================= Program Log Output ======================================\n");
       fprintf(log_file_ptr, "\n\n");                                                    // Finish initial output with line feed(s) 
+      fprintf(log_file_ptr, "Runtime setings:\n");                                      // List the runtime settings
+      if (cfg_open)
+        fprintf(log_file_ptr, "Using configuration file: %s\n", cfg_file);
+      else 
+        fprintf(log_file_ptr, "No configuration file found, going with code default values.\n");
 
+      if (pgm_log) 
+
+
+        fprintf(log_file_ptr, "Writing log file: %s\n", log_file);
+
+
+        else 
+        fprintf(log_file_ptr, "No log file to be produced.\n");
+      if (debug_log) 
+        fprintf(log_file_ptr, "Writing debug log file: %s\n", debuglog_file);
+      else 
+        fprintf(log_file_ptr, "No debug log file to be produced.\n");
 
       // Add the config & debug values here
 
 
     }
   }
+  else
+    printf("No processing log file will be produced.\n");
 
-  if (debug_log)                                              // If you want an debug log file
+  if (debug_log)                                                      // If you want an debug log file
   {
+    printf("Debug log file: %s.\n", debuglog_file);
     if( (debuglog_file_ptr = fopen(debuglog_file,"w")) == NULL )      // Try to open the output log file 
     {
       // If we cannot open an output log file the program should halt running in this case.
       // We want to see this message.
-      printf(" Program log file cannot be opened: %s Cannot continue.\n", log_file);
+      printf("Debug log file cannot be opened. Cannot continue.\n");
 
       return(4);
     }
     else
     { 
       // Display some startup information.
-      fprintf(log_file_ptr, "============================= Debug Output ======================================\n");
-      fprintf(log_file_ptr, "Program: %s\n", pgm_name);                                 // Display this program's name
-      fprintf(log_file_ptr, "Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Program's compile date and time
-      fprintf(log_file_ptr, "Current time: (local): %s, ", loc_start_Time_str);         // Run time - 'local time' string
-      fprintf(log_file_ptr, "(UTC): %s\n", UTC_start_Time_str);                         // Run time - UTC time string  
-      fprintf(log_file_ptr, "============================= Debug Output ======================================\n");
-      fprintf(log_file_ptr, "\n\n");                                                    // Finish initial output with line feed(s) 
+      fprintf(debuglog_file_ptr, "***************************** Debug Output **************************************\n");
+      fprintf(debuglog_file_ptr, "Program: %s\n", pgm_name);                                 // Display this program's name
+      fprintf(debuglog_file_ptr, "Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Program's compile date and time
+      fprintf(debuglog_file_ptr, "Current time: (local): %s, ", loc_start_Time_str);         // Run time - 'local time' string
+      fprintf(debuglog_file_ptr, "(UTC): %s\n", UTC_start_Time_str);                         // Run time - UTC time string  
+      fprintf(debuglog_file_ptr, "***************************** Debug Output **************************************\n");
+      fprintf(debuglog_file_ptr, "\n\n");                                                    // Finish initial output with line feed(s) 
+      fprintf(debuglog_file_ptr, "Runtime setings:\n");                                      // List the runtime settings
+      if (cfg_open)
+        fprintf(debuglog_file_ptr, "Using configuration file: %s\n", cfg_file);
+      else 
+        fprintf(debuglog_file_ptr, "No configuration file found, going with code default values.\n");
+      if (pgm_log) 
+        fprintf(debuglog_file_ptr, "Writing log file: %s\n", log_file);
+      else 
+        fprintf(debuglog_file_ptr, "No log file to be produced.\n");
+      if (debug_log) 
+        fprintf(debuglog_file_ptr, "Writing debug log file: %s\n", debuglog_file);
+      else 
+        fprintf(debuglog_file_ptr, "No debug log file to be produced.\n");
+
 
       // Add the config & debug values here
     }
   }
+  else
+    printf("No debug log file will be produced.\n");
 
 
 
@@ -340,25 +394,7 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
   int highest_rc = 0;            // Overall return code to main. If there is any issue, then this will be non-zero
   int param      = 1;            // parameter number - start with the 2nd parm - after the program name
   
-  /* First, initialize default file name strings to NULL */
-  memset(cfg_file,     '\0', sizeof(cfg_file));    
-  memset(log_file,     '\0', sizeof(log_file));    
-  memset(debuglog_file,'\0', sizeof(debuglog_file));    
-  memset(in_file,      '\0', sizeof(in_file));    
-  memset(out_file,     '\0', sizeof(out_file));    
-
-  /* -- First, set set the hard-coded default values */ 
-
-  // By default, the program's configuration file is assumed to be in the same directory as the program is run from
-  // Default file setup: The configuration is found in the present working directory (ie. './')
-  //                     Log file output(s) will be put in the 'log' subdirectory of the present working directory
-  //                     The input data file - if any - is found in the 'data ' subdirectory
-  //                     The program output file(s) - if any - will be written out to the 'output' subdirectory
-
-  sprintf(cfg_file,      "%s%s_%s%s", def_path,     pgm_name, def_cfg_filename, def_name_trailer_txt);  // Default config file name
-  sprintf(log_file,      "%s%s_%s%s", def_log_path, pgm_name, def_log_filename, def_name_trailer_txt);  // Default pgm log file name
-  sprintf(debuglog_file, "%s%s_%s%s", def_log_path, pgm_name, def_log_filename, def_name_trailer_txt);  // Default pgm's debug log
-  
+ 
   // Commented out but not forgotten: Non default files - we don't know the names of the input or output files at this time.
   // There is no default.
   // sprintf(in_file    , "%s%s_%s", def_in_path ,     pgm_name, def_in_filename );       // Default pgm's regular log location
@@ -659,8 +695,7 @@ int extract_param(char p_str[])
     if (debug_log > 1) printf(" Ext: Log parm: <%s>\n",p_str);
 
     
-    
-    // Add code here to determine if you want or don't want a program log output file
+      // The presence of a log file name parameter will be the flag to produce a log file
 
     
     
