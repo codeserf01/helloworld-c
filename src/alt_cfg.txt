@@ -18,10 +18,10 @@
 * -o=---  Program output file name  (for later development)
 *
 -d=l1
--l=./pgmlog.txt
--v=./debuglog.txt
+-l=./pgmlog.log
+-v=./debuglog.log
 
 
 
--l=./log/pgmlog.txt
--v=./log/debuglog.txt
+-l=./log/pgmlog.log
+-v=./log/debuglog.log

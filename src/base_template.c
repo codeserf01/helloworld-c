@@ -48,7 +48,8 @@ char def_out_path         [] = "./output/\0";      // Default output path - outp
 /* For future consideration: The file names below are left 'bare' in case a name 
    qualifier is needed for uniqueness among multiple runs
 */
-char def_name_trailer_txt [] = ".txt\0";        // default text file name trailer
+char def_name_trailer_txt [] = ".txt\0";        // Default text file name trailer
+char def_name_trailer_log [] = ".log\0";        // Default log file name trailer
 
 /* ----------------------------------------------------------------------------------------- 
    Default file names. May be updated via runtime parameter(s) or a config file.
@@ -180,8 +181,8 @@ int main(int argc, char *argv[])
 
   /* -- Set set the files names to default hard-coded values */ 
   sprintf(cfg_file,      "%s%s_%s%s", def_path,     pgm_name, def_cfg_filename,      def_name_trailer_txt);  // Default config file name
-  sprintf(log_file,      "%s%s_%s%s", def_log_path, pgm_name, def_log_filename,      def_name_trailer_txt);  // Default pgm log file name
-  sprintf(debuglog_file, "%s%s_%s%s", def_log_path, pgm_name, def_debuglog_filename, def_name_trailer_txt);  // Default pgm's debug log
+  sprintf(log_file,      "%s%s_%s%s", def_log_path, pgm_name, def_log_filename,      def_name_trailer_log);  // Default pgm log file name
+  sprintf(debuglog_file, "%s%s_%s%s", def_log_path, pgm_name, def_debuglog_filename, def_name_trailer_log);  // Default pgm's debug log
   
   // Screen display some startup information to show that the program is actually running.
   printf("\n");                                                    // Separate output from any preceeding terminal text 
