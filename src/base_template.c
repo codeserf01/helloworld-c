@@ -1,6 +1,6 @@
 /* ----------------------------------------------------------------------------------------------------------------------
   base_template.c
-    Version: 1.0  (June 2026)
+    Version: 1.0  (Sept 2026)
     Author: Edward Morawski
 
     This code is a generic, runnable C-language program to exercise run-time configuration through command line 
@@ -9,22 +9,23 @@
     It also serves as a personal template for future programs regarding parameter processing.
 
     This program will: 
-    - Start with a displayu of some startup information.
-    - Collect runtime command line parameters, followed by read a configuration file, if there is one.
-      This will collect any run-time settings for the program run - (ie. working directories, files to open, debug output level, etc)
+    - Start with a display of some startup information to show that this program is running.
+    - Read any runtime command line parameters, followed by reading in a configuration file, if there is one.
+      This intended to help set any run-time program settings (ie. working directories, files to open, debug output level, etc)
     - Any other generic basic setup work that might be a good idea to have.
     There is also some rudimentary code to accomodate basic data input and program output files. There are NO defaults
       for these files. If you need to use input and/or output file(s), names absolutely need to be added in.
     
     This is a 'live' file and will be modified as needed.
 
-    Note: Before you judge coding style:
+    Note: Before you judge this code:
         1) Yes, it is over-engineered but meant to cover a wide range of potential coding needs
         2) Yes, the code style is definitely 'old school'. It's my style. 
-        3) There are a LOT of comments. It's for helping with code clarity long after I am done with this code.
+        3) There are a LOT of comments. It's for helping with long-term code clarity.
    
    Updates:
     June 2026: Version 1.0  - initial version
+    Sept 2026: Minor changes for function clarity
    ----------------------------------------------------------------------------------------------------------------------*/
 
 // Turn off the MS-oriented secure function call warnings. They are considered near-useless anyway
@@ -81,9 +82,8 @@ int  debuglog_open = 0;
 int  in_open       = 0;
 int  out_open      = 0;
 
-// Flags to indicate where file names were set.
-// Show that it was set and at what stage of startup. This will help enforce the practice that it is set only once.
-// Valid values: ' ' - Not set at all or default (no value)
+// Flags: To show that it was set and at what stage of startup. Set to default at the start.
+// Valid values: ' ' - Not set at all or no default (no value)
 //               'd' - default - use the program's hard-coded values
 //               'r' - set through a run-time parameter
 //               'c' - set through a configuration file setting
@@ -110,7 +110,7 @@ struct  tm UTC_start_Time;        // GMT/UTC time - time structure to hold UTC t
 char    *loc_Time_str    ;        // Pointer to derived local time string - derived from loc_start_Time
 char    *UTC_Time_str    ;        // Pointer to derived UTC_Time string - derived from UTC_start_time
 
-char    loc_start_Time_str[25];   // Program start - local time & date string -ess trailing '\n' character
+char    loc_start_Time_str[25];   // Program start - local time & date string - less trailing '\n' character
 char    UTC_start_Time_str[25];   // Program start - GMT/UTC date & time string - less trailing '\n' character
 char    gen_datetimestr   [50];   // generic date/time string - tmp/working string - less trailing '\n' character
 
@@ -127,7 +127,7 @@ int trimspaces       (char *)        ;    // Trim all leading and trailing space
 int main(int argc, char *argv[])
 {
   int   ret  = 0;                         // Generic return code value from called functions
-  char *cptr = NULL;                      // Pointer to a char, actually a pointer to an string
+  char *cptr = NULL;                      // Generic pointer to an string
 
   // --------------------------------------------------------------------------------------------------------------------------------
   // Initialize time/date fields from system calls
@@ -158,13 +158,6 @@ int main(int argc, char *argv[])
   cptr = strrchr(argv[0], '/');                         // Point to the LAST occurance of the char '/' before the program name
   strcpy(pgm_name, cptr+1);                             // Save the remaining string chars - program name 
   
-  // Debug: Display the resulting string, which should show the program name only, at run-time. 
-  /*
-  if (cptr != NULL) 
-        { printf("Runtime program name: %s\n", cptr+1);   // String after the LAST occurance of '/' in the string } 
-  else  { printf("Character not found.\n"); }
-  */  
-  
   /* Initialize default file name strings to NULL */
   memset(cfg_file,     '\0', sizeof(cfg_file));    
   memset(log_file,     '\0', sizeof(log_file));    
@@ -173,28 +166,26 @@ int main(int argc, char *argv[])
   memset(out_file,     '\0', sizeof(out_file));    
 
 
-  // By default, the program's configuration file is assumed to be in the same directory as the program is run from
-  // Default file setup: The configuration is found in the present working directory (ie. './')
-  //                     Log file output(s) will be put in the 'log' subdirectory of the present working directory
-  //                     The input data file - if any - is found in the 'data ' subdirectory
-  //                     The program output file(s) - if any - will be written out to the 'output' subdirectory
+  // By default: The program's configuration file is assumed to be in current working directory (i.e './')
+  //             The log file output(s) will be put in the 'log' subdirectory of the present working directory
+  //             The input data file (if any) is found in the 'data ' subdirectory
+  //             The program output file(s) (if any) will be written out to the 'output' subdirectory
 
-  /* -- Set set the files names to default hard-coded values */ 
+  /* -- Set up the files names default startup values. These may be overwritten later by parameter input. */ 
   sprintf(cfg_file,      "%s%s_%s%s", def_path,     pgm_name, def_cfg_filename,      def_name_trailer_txt);  // Default config file name
   sprintf(log_file,      "%s%s_%s%s", def_log_path, pgm_name, def_log_filename,      def_name_trailer_log);  // Default pgm log file name
   sprintf(debuglog_file, "%s%s_%s%s", def_log_path, pgm_name, def_debuglog_filename, def_name_trailer_log);  // Default pgm's debug log
   
-  // Screen display some startup information to show that the program is actually running.
-  printf("\n");                                                    // Separate output from any preceeding terminal text 
+  // Display some startup information to show that the program is actually running.
+  printf("\n");                                                      // Separate output from any preceeding terminal text 
   printf("Program: %s\n", pgm_name);                                 // Display this program's name
   printf("Program Compile Date/Time: %s/%s\n", __DATE__, __TIME__);  // Program's compile date and time
   printf("Current time: (local): %s, ", loc_start_Time_str);         // Run start time - 'local time' string
   printf("(UTC): %s", UTC_start_Time_str);                           // Run start time - UTC time string  
   printf("\n\n");                                                    // Finish initial output with line feed(s) 
 
-
-  /* -------------------------------------------------------------------------------------------------
-    Get all command line and configuration file parameters to set specific overrides.
+  /* ------------------------------------------------------------------------------------------------
+    Get all command line and configuration file parameters and to overwrite specific initial values.
     This is the override precidence:
       1) Program already has hard-coded default values. Those will be used if no corresponding override is found.
       2) Command line parms will override default values.
@@ -222,11 +213,11 @@ int main(int argc, char *argv[])
 
   /* --------------   Read and process the config file (if present)   ----------------- */
   /* Look for the configuration file for this program run.
-  * Use the run-time command line parameter value for this, if it is present. Otherwise, use the default name.
+  * This file  name may be specified in a run-time parm. Otherwise, use the default name.
   * If a configuration file is found, open it and process its contents for final configuration 
   * If there is no configuration file to be found,
-  *        a) If a file was specified and not found, end the program with an error message
-  *        b) If no parameter file was specified, use the hard-coded default parameter file name. 
+  *        a) If a file was specified (as a run-time parm) and not found, end the program with an error message
+  *        b) If no run-time parameter file was specified, use the hard-coded default parameter file name. 
   *           If the default file was not found, then carry on with internal default values.
   */
 
@@ -238,7 +229,7 @@ int main(int argc, char *argv[])
     
     case 1 : 
               // No default file was found and no alternate specified - go with pgm defaults
-              printf("Default configuration file <%s> not found. Going with coded defaults.\n", cfg_file);
+              printf("Default configuration file <%s> not found. Going with internal defaults.\n", cfg_file);
               
               break;                                
 
@@ -260,6 +251,7 @@ int main(int argc, char *argv[])
               break;
   } // switch
   
+  /* Now that the run parameters have been worked out:              */
   /* --------------   Do the log file(s) thing... ----------------- */
   /*
      Open the program's log file
@@ -299,17 +291,15 @@ int main(int argc, char *argv[])
         fprintf(log_file_ptr, "No configuration file found, going with code default values.\n");
 
       if (pgm_log) 
-
-
         fprintf(log_file_ptr, "Writing log file: %s\n", log_file);
-
-
-        else 
+      else 
         fprintf(log_file_ptr, "No log file to be produced.\n");
+
       if (debug_log) 
         fprintf(log_file_ptr, "Writing debug log file: %s\n", debuglog_file);
       else 
         fprintf(log_file_ptr, "No debug log file to be produced.\n");
+
 
       // Add the config & debug values here
 
@@ -375,6 +365,8 @@ int main(int argc, char *argv[])
 
 
 
+  /* ---- Wind up, close down ---- */
+
   if (pgm_log)
     fclose(log_file_ptr);           // Program end - if the log file was opened, then close it
   if (debug_log)
@@ -387,7 +379,7 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
 {
   /* ----------------------------------------------------------------------------------
      Firstly, set the default switch values, then look for command line parameters.
-     The run-time parameters will overwrite corresponding default values. 
+     The run-time parameters will overwrite corresponding initial default values. 
     
      Also note: All output here is to the command line - no files have yet been opened.
      ---------------------------------------------------------------------------------- */
@@ -395,8 +387,8 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
   int highest_rc = 0;            // Overall return code to main. If there is any issue, then this will be non-zero
   int param      = 1;            // parameter number - start with the 2nd parm - after the program name
   
- 
   // Commented out but not forgotten: Non default files - we don't know the names of the input or output files at this time.
+  // We won't work with input nor output file here, but set the initial/default name here, if applicable.
   // There is no default.
   // sprintf(in_file    , "%s%s_%s", def_in_path ,     pgm_name, def_in_filename );       // Default pgm's regular log location
   // sprintf(output_file, "%s%s_%s", def_out_path,     pgm_name, def_out_filename);       // Default pgm's regular log location
@@ -404,15 +396,15 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
   // Now, read in any run-time parameters and parse them.
 
   highest_rc = 0;                         // Set to default, hold the highest return code encountered
-  if (pgm_argc == 1)                      // If only the program name found. There will always be at least 1 parm: the program name
+  if (pgm_argc == 1)                      // There will always be at least 1 parm: the program name
   {
     // printf(" No command line (run time) parameters found.\n");
     return 1;                             // That was easy: No further command line parms; return with 1 ('No parameters')
   } 
   else
   {
-    /*  Parse each input parameter  */
-    param = 1;                           // Intialize to read the first parameter after pgm name
+    /*  Parse each subsequent runtime input parameter  */
+    param = 1;                           // Start with the first parameter after pgm name
     while ( param < pgm_argc )           // Traverse the chain of parms; make sure you're not going past the end of the array
     {
       rc = extract_param(pgm_argv[param]);    // Work on the next command line parm 
@@ -427,13 +419,13 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
         }
         else
         {
-          // Minor return code. Not enough to halt the program
+          // Place holder code. Here: Minor return code. Not enough to halt the program
           // printf("Parameter %d is invalid (ignored): <%s>, Return code: %d.\n", param, pgm_argv[param], rc);
           // 
           ;                                  // Do nothing, continue
         }
       }
-      else
+      else                                   // Placeholder. Here: returned with 0, valid parm processed.
       {  ;  }                                // Good parameter nothing more to do
       ++param;                               // Point to the next parameter
     } /* while ( param < pgm_argc ) */
@@ -445,8 +437,8 @@ int get_runtime_parms(int pgm_argc, char *pgm_argv[])
 
 /* ----------------------------------------------------------------------------------
      Get configuration file parameters.
-     Like command line parms, these inputs will override the program's internal default
-     values that command line parms did not set. 
+     Like command line parms, these inputs will override the program's internal defaults
+     Values already set through command line input will be skipped. 
     
      Also note: All output here is to the command line - no files have yet been opened.
    ---------------------------------------------------------------------------------- */
@@ -470,12 +462,11 @@ int  get_config_parms()                          // Get whatever configuration f
   */
   // Open the defined configuration file
   // If it's not found, BIG problem - return with RC = 4 or higher (will end program run)
-
-  printf(" Searching for configuration file: <%s> ...\n", cfg_file);
+  printf("Using configuration file: <%s> ...\n", cfg_file);
   if( (cfg_file_ptr = fopen(cfg_file,"r")) == NULL )        // Try to open the configuration file 
   {
     // Can't find it or won't open 
-    // If this file is the default configuration file then simply return, indicate no file found 
+    // If this file is the default configuration file then simply return - no file found 
     // If it's a specific file (specified through a runtime command parameter), 
     // then return with an error code
     if (cfg_open_set == 'd')                     // If this file was the default file name
@@ -493,9 +484,9 @@ int  get_config_parms()                          // Get whatever configuration f
       return(4);
     }
   }
-  
+    
   // File found and opened. Now read through it and get whatever parameter settings are included
-  // Be sure to skip all comment lines, defined by a ':' or ';' or '*' in the first column of each line/record
+  // Note, skip all comment lines
 
   data_str = (char *) malloc (input_bufsize);     // Allocate an input buffer to read in a record/line
   while (!feof(cfg_file_ptr))
@@ -504,17 +495,18 @@ int  get_config_parms()                          // Get whatever configuration f
     memset(data_str,'\0',input_bufsize);
     fgets(data_str, input_bufsize, cfg_file_ptr);
     line_count++;                                 // Count this line 
-    // if (debug_log > 1) printf(" Line %d (before):>>%s<<\n",line_count, data_str);
     rc = trimspaces(data_str);                    // Cleanup: remove leading and trailing spaces, etc...
-    // if (debug_log > 1) printf(" Line %d (after):>>%s<<\n",line_count, data_str);
+    // if (debug_log > 1) printf(" Line %d:>>%s<<\n",line_count, data_str);
     if (rc == 1)
     {
       // Blank line - no text. To be skipped
-      if (debug_log > 2)   printf(" CFG: Line %d skipped - Blank line: <%s>\n",line_count, data_str);
+      // if (debug_log > 2)   printf(" CFG: Line %d skipped - Blank line: <%s>\n",line_count, data_str);
+      ;
     }
     else
     {
       // Comment lines within the file are flagged as one of the following chars in the first column
+      // Identify and skip all comment lines, defined as one of (in 1st column): ':' or ';' or '*'
       if ( data_str[0] == ':'  ||                 // Look for embedded comment(s)
            data_str[0] == '>'  ||                 // Yes, all these prefixes will denote a comment line
            data_str[0] == '*'  ||                 // because, well, I can

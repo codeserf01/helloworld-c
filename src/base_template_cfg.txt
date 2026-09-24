@@ -1,17 +1,29 @@
 * base_template_cfg.txt
 * The default configuration file accompanying program base_template
-* For programs based on the template program base_template, by default file should named [program name][_cfg.txt]
+* By default the program will look for [program name][_cfg.txt]
 
-* Hard-coded parameters for this program:
-* -c=--- Configuration program name (used on the command line at runtime)
-* -l=--- Log output file name
-* -v=--- Debug log file name
-* -d=--- Debug level flag:
-*           F/f - activate frequent file buffer flushes
-*           L/l0  - No debug logging 
-*           L/l1  - Basic debug info recording
-*           L/l2  - more detailed debug info recording
-*           L/l3  - All the debug info available
+* Overrides to hard-coded parameters for this program. Flags may be upper or lower case:
+* -c=--- Configuration file name  - This file. By default it should be named [program name]_cfg.txt
+*                                 - This parm is used on the command line at runtime. 
+*                                   If this parm is used in the config file, the entry will be ignored
+*                                 - By default, the program will look for this file in the current working directory
+*                                   Specify an alternate file and location to override this
+*                                 - Can be a file name only or include a relative or absolute path.
+*                                 - By convention, the name should end with '.txt'
+* -l=--- Log output file name - Can be name only or include a relative or absolute path. 
+*                               File name SHOULD end with '.log'
+*                               The presence of this parm (command line parm or config file) indicates that a program log 
+*                               is to be produced. Otherwise no log file is produced.
+* -v=--- Debug log file name  - can be name only or include a relative or absolute path. 
+*                             - File name SHOULD end with '.log'
+* -d=--- Debug level flag:    - Two settiings can be specified: file buffer flush or debug level; seperate line for each
+*        One entry for each type - One line to specify frequent buffer flushes
+*                                  One line to specify the debug level (specify one option ONLY)
+*           f   - activate frequent file buffer flushes
+*           l0  - No debug logging (Regardless if a debug file name is specified)
+*           l1  - Basic debug info recording
+*           l2  - more detailed debug info recording
+*           l3  - All the debug info available
 * -i=---  Input data file name ( for later development )
 * -o=---  Program output file name  (for later development)
 *
