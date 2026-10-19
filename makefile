@@ -20,6 +20,7 @@ EXE03  = $(BIN)hello3
 EXE04  = $(BIN)timestrings
 EXE10  = $(BIN)base_template
 EXE20  = $(BIN)msglog
+EXE30  = $(BIN)hellogui
 
 # The source codes
 SRC01  = $(SRC)helloworld
@@ -28,9 +29,11 @@ SRC03  = $(SRC)hello3
 SRC04  = $(SRC)timestrings
 SRC10  = $(SRC)base_template
 SRC20  = $(SRC)msglog
+SRC30  = $(SRC)hellogui
+
 
 # Make a list of all the .exe's that should be built as necessary
-EXE = $(EXE01) $(EXE02) $(EXE03) $(EXE04) $(EXE10) $(EXE20) 
+EXE = $(EXE01) $(EXE02) $(EXE03) $(EXE04) $(EXE10) $(EXE20) $(EXE30) 
 
 # Make directive: Build all where the target (executable) is missing
 # This just directs to the 'all' label by default
@@ -56,6 +59,9 @@ $(EXE10): $(SRC10).c
 $(EXE20): $(SRC20).c
 		$(CC) $(CFLAGS) -o $(EXE20) $(SRC20).c
 
+$(EXE30): $(SRC30).c
+		$(CC) $(CFLAGS) -o $(EXE30) $(SRC30).c
+
 #-----------------------------------------------------------
 # Build all where the exe is missing
 # EXE is a list of executables/targets
@@ -74,3 +80,4 @@ clean:
 		$(RM) $(EXE04)
 		$(RM) $(EXE10)
 		$(RM) $(EXE20)
+		$(RM) $(EXE30)
